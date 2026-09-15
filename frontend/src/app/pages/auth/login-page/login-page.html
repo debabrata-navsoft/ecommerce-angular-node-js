@@ -26,8 +26,9 @@
           <p class="error-line">Enter a valid email.</p>
         }
 
-        @if (email.errors?.['emailNotRegistered'] && email.touched) {
-          <p class="error-line">Email is not registered</p>
+        <!-- e.g. "This email is not registered. Please sign up first." -->
+        @if (email.errors?.['server']) {
+          <p class="error-line">{{ email.errors?.['server'] }}</p>
         }
       </div>
 
@@ -37,11 +38,22 @@
         <input
           id="password"
           name="password"
-          type="password"
+          [type]="showPassword() ? 'text' : 'password'"
           autocomplete="current-password"
           placeholder="Enter your password"
           formControlName="password"
         />
+        <button
+          type="button"
+          class="toggle-password"
+          (click)="togglePassword()"
+          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="showPassword()"
+        >
+          <mat-icon class="material-icons-outlined">
+            {{ showPassword() ? 'visibility_off' : 'visibility' }}
+          </mat-icon>
+        </button>
       </div>
 
       <div class="error">
@@ -52,10 +64,25 @@
         @if (password.errors?.['minlength'] && password.touched) {
           <p class="error-line">Minimum 6 characters</p>
         }
-        @if (password.errors?.['invalidPassword'] && password.touched) {
-          <p class="error-line">Invalid password</p>
+
+        <!-- e.g. "Incorrect password. Please try again." -->
+        @if (password.errors?.['server']) {
+          <p class="error-line">{{ password.errors?.['server'] }}</p>
         }
       </div>
+
+      <div class="forgot-link">
+        <a routerLink="/forgot-password">Forgot password?</a>
+      </div>
+
+      <!-- Failures that belong to no single field: an admin account used on the customer
+           login, or the server being unreachable. Field-specific ones print above. -->
+      @if (serverError()) {
+        <div class="server-error">
+          <mat-icon class="material-icons-outlined">error_outline</mat-icon>
+          <p class="error-line">{{ serverError() }}</p>
+        </div>
+      }
 
       <button type="submit" class="login-btn">
         @if (isLoading()) {

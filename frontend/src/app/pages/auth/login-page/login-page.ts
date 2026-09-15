@@ -10,6 +10,8 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { ApiFailure } from '../../../core/api.service';
+import { applyServerErrors, clearServerErrors } from '../../../core/form-errors';
 import { AuthService } from '../../../services/auth-user.service';
 import { SnackbarService } from '../../../services/snackbar.service';
 import { isPlatformBrowser } from '@angular/common';
@@ -28,6 +30,10 @@ export class LoginPage {
   private platformId = inject(PLATFORM_ID);
 
   isLoading = signal(false);
+  showPassword = signal(false);
+
+  /** The API's own rejection text, shown above the button and cleared on the next try. */
+  serverError = signal('');
 
   form = new FormGroup({
     email: new FormControl<string>('', {
@@ -48,7 +54,14 @@ export class LoginPage {
     return this.form.controls.password;
   }
 
+  togglePassword() {
+    this.showPassword.update((show) => !show);
+  }
+
   onSubmit() {
+    this.serverError.set('');
+    clearServerErrors(this.form);
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.snackBar.error('Please enter valid email and password');
@@ -59,10 +72,8 @@ export class LoginPage {
 
     this.isLoading.set(true);
 
-    const sub = this.authService.login(email, password).subscribe({
-      next: (user) => {
-        console.log(user);
-
+    this.authService.login(email, password).subscribe({
+      next: () => {
         this.snackBar.success('Login successful');
         this.isLoading.set(false);
 
@@ -78,26 +89,11 @@ export class LoginPage {
         }
       },
 
-      error: (err: any) => {
+      error: (err: ApiFailure) => {
         console.error(err);
 
-        let message = 'Login failed';
-
-        if (err.code === 'auth/user-not-found') {
-          message = 'Email not registered';
-          this.email.setErrors({ emailNotRegistered: true });
-        }
-
-        if (err.code === 'auth/wrong-password') {
-          message = 'Invalid password';
-          this.password.setErrors({ invalidPassword: true });
-        }
-
-        if (err.code === 'auth/invalid-email') {
-          message = 'Invalid email format';
-        }
-
-        this.snackBar.error(message);
+        this.serverError.set(applyServerErrors(this.form, err));
+        this.snackBar.error(err.message || 'Login failed. Please try again.');
         this.isLoading.set(false);
       },
     });

@@ -63,6 +63,27 @@ export const routes: Routes = [
       },
 
       {
+        path: 'forgot-password',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/auth/forgot-password-page/forgot-password-page').then(
+            (m) => m.ForgotPasswordPage,
+          ),
+        data: { hideLayout: true },
+      },
+
+      // No authGuard here — see the note on the guard: the emailed link has to work even
+      // with a stale session in the browser.
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./pages/auth/reset-password-page/reset-password-page').then(
+            (m) => m.ResetPasswordPage,
+          ),
+        data: { hideLayout: true },
+      },
+
+      {
         path: 'products',
         data: { breadcrumb: 'Products' },
         children: [

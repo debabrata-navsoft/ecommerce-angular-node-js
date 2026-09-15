@@ -8,6 +8,13 @@ import { environment } from '../../environments/environment';
 export type QueryParams = Record<string, string | number | boolean | undefined | null>;
 
 /**
+ * What every failed call rejects with. `message` is the API's own text, so pages should
+ * show that rather than inventing their own; `status` is there for the few places that
+ * need to branch on a specific failure.
+ */
+export type ApiFailure = Error & { status?: number; details?: unknown };
+
+/**
  * Starts a request immediately while keeping it subscribable.
  *
  * HttpClient observables are **cold**: nothing is sent until someone subscribes. The
@@ -121,7 +128,7 @@ function handleError(err: HttpErrorResponse) {
     err.error?.['message'] ??
     (err.status === 0 ? 'Cannot reach the server. Is the API running?' : err.message);
 
-  const error = new Error(message) as Error & { status?: number; details?: unknown };
+  const error = new Error(message) as ApiFailure;
   error.status = err.status;
   if (details) error.details = details;
 

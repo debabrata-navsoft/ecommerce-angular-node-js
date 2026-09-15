@@ -36,12 +36,21 @@ const userSchema = new Schema(
     phoneNumber: { type: [String], default: [] },
     role: { type: String, enum: ['user', 'admin'], default: 'user', index: true },
     addresses: { type: [addressSchema], default: [] },
+
+    // Only the SHA-256 of the reset token is stored, so a leaked database dump cannot be
+    // replayed against /auth/reset-password. Both fields are cleared once the token is
+    // spent. `select: false` for the same reason as passwordHash.
+    resetTokenHash: { type: String, select: false },
+    resetTokenExpiresAt: { type: Date, select: false },
   },
   { timestamps: true },
 );
 
 // The Angular `User` model keys off `uid`; expose both so either works.
-serializeJson(userSchema, { aliasId: 'uid', hide: ['passwordHash'] });
+serializeJson(userSchema, {
+  aliasId: 'uid',
+  hide: ['passwordHash', 'resetTokenHash', 'resetTokenExpiresAt'],
+});
 
 userSchema.virtual('displayName').get(function () {
   return `${this.firstName} ${this.lastName}`.trim();

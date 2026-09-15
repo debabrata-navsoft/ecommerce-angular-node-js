@@ -7,8 +7,11 @@ import { SessionService } from '../core/session.service';
 import { SnackbarService } from '../services/snackbar.service';
 
 /**
- * Customer-area guard. Also applied to /login and /signup, where it lets anonymous
- * visitors through and redirects anyone already signed in.
+ * Customer-area guard. Also applied to /login, /signup and /forgot-password, where it lets
+ * anonymous visitors through and redirects anyone already signed in.
+ *
+ * /reset-password is deliberately left unguarded: it is the only way to finish a recovery,
+ * and a stale session in the browser must not be able to block the emailed link.
  *
  * The role now arrives on the session user, so there is no second document read. The
  * dual check is intact: because one auth cookie is shared across tabs, an admin session
@@ -25,7 +28,8 @@ export const authGuard: CanActivateFn = (_route, state) => {
   if (!isPlatformBrowser(platformId)) return of(true);
 
   const url = state.url;
-  const isAuthPage = url.startsWith('/login') || url.startsWith('/signup');
+  const isAuthPage =
+    url.startsWith('/login') || url.startsWith('/signup') || url.startsWith('/forgot-password');
 
   return session.user$.pipe(
     take(1),

@@ -12,6 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { ApiFailure } from '../../../core/api.service';
+import { applyServerErrors, clearServerErrors } from '../../../core/form-errors';
 import { AuthService } from '../../../services/auth-user.service';
 import { User } from '../../../models/user.model';
 import { SnackbarService } from '../../../services/snackbar.service';
@@ -29,6 +31,11 @@ export class SignupPage {
   private snackBar = inject(SnackbarService);
 
   isLoading = signal(false);
+  showPassword = signal(false);
+  showConfirmPassword = signal(false);
+
+  /** API failures that belong to no single field; per-field ones print under their input. */
+  serverError = signal('');
 
   form = new FormGroup(
     {
@@ -49,9 +56,11 @@ export class SignupPage {
         // updateOn: 'blur',
       }),
 
+      // 8, matching the API's own check — at 6 the form accepted passwords the server
+      // then rejected with a validation error.
       password: new FormControl('', {
         nonNullable: true,
-        validators: [Validators.required, Validators.minLength(6)],
+        validators: [Validators.required, Validators.minLength(8)],
       }),
 
       confirmPassword: new FormControl('', {
@@ -95,7 +104,20 @@ export class SignupPage {
     this.phoneNumber.removeAt(index);
   }
 
+  togglePassword() {
+    this.showPassword.update((show) => !show);
+  }
+
+  toggleConfirmPassword() {
+    this.showConfirmPassword.update((show) => !show);
+  }
+
   onSubmit() {
+    // Before the validity check: a leftover server error from the last attempt would
+    // otherwise keep the form invalid and fail it as a client-side error.
+    this.serverError.set('');
+    clearServerErrors(this.form);
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.snackBar.error('Please fill all fields correctly');
@@ -121,15 +143,17 @@ export class SignupPage {
         this.router.navigate(['/']);
       },
 
-      error: (error: any) => {
-        if (error.code === 'auth/email-already-in-use') {
-          this.email.setErrors({ emailTaken: true });
-          // this.snackBar.error('Email already exists');
-        } else {
-          this.snackBar.error('Signup failed');
-        }
+      /**
+       * The API tags what it rejected — a duplicate email, a password under 8 characters,
+       * a missing name — so each message lands under its own field. The check this
+       * replaced looked for a Firebase code the API never sends, so a duplicate email
+       * showed the generic "Signup failed".
+       */
+      error: (err: ApiFailure) => {
+        console.error(err);
 
-        console.error(error);
+        this.serverError.set(applyServerErrors(this.form, err));
+        this.snackBar.error(err.message || 'Signup failed');
         this.isLoading.set(false);
       },
     });

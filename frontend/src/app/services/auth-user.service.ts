@@ -88,6 +88,19 @@ export class AuthService {
   }
 
   /**
+   * Succeeds whether or not the address is registered — the API answers the same either
+   * way so it cannot be used to enumerate accounts, so the page must not promise the mail
+   * was actually sent.
+   */
+  forgotPassword(email: string): Observable<void> {
+    return this.api.post<void>('/auth/forgot-password', { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<void> {
+    return this.api.post<void>('/auth/reset-password', { token, password });
+  }
+
+  /**
    * The session cookie is shared across tabs, so a customer and admin login can still
    * clash. `session_role` records which area signed in last, and the guards compare it
    * against the role on the user document to detect a leak — keep both halves of that

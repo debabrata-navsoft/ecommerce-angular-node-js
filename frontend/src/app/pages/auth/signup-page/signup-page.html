@@ -20,8 +20,12 @@
           </div>
 
           <div class="error">
-            @if (firstName.invalid && firstName.touched) {
+            @if (firstName.errors?.['required'] && firstName.touched) {
               <p class="error-line">First name is required</p>
+            }
+
+            @if (firstName.errors?.['server']) {
+              <p class="error-line">{{ firstName.errors?.['server'] }}</p>
             }
           </div>
         </div>
@@ -39,8 +43,12 @@
             />
           </div>
           <div class="error">
-            @if (lastName.invalid && lastName.touched) {
+            @if (lastName.errors?.['required'] && lastName.touched) {
               <p class="error-line">Last name is required</p>
+            }
+
+            @if (lastName.errors?.['server']) {
+              <p class="error-line">{{ lastName.errors?.['server'] }}</p>
             }
           </div>
         </div>
@@ -64,11 +72,13 @@
           @if (email.errors?.['required'] && email.touched) {
             <p class="error-line">Email is required</p>
           }
-          @if (email.errors?.['email']) {
+          @if (email.errors?.['email'] && email.touched) {
             <p class="error-line">Enter valid email</p>
           }
-          @if (email.errors?.['emailTaken']) {
-            <p class="error-line">Email already exists</p>
+
+          <!-- e.g. "This email is already registered. Try logging in instead." -->
+          @if (email.errors?.['server']) {
+            <p class="error-line">{{ email.errors?.['server'] }}</p>
           }
         </div>
       </div>
@@ -81,11 +91,22 @@
             <input
               id="password"
               name="password"
-              type="password"
-              autocomplete="current-password"
+              [type]="showPassword() ? 'text' : 'password'"
+              autocomplete="new-password"
               placeholder="Enter your password"
               formControlName="password"
             />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <mat-icon class="material-icons-outlined">
+                {{ showPassword() ? 'visibility_off' : 'visibility' }}
+              </mat-icon>
+            </button>
           </div>
           <div class="error">
             @if (password.errors?.['required'] && password.touched) {
@@ -93,7 +114,11 @@
             }
 
             @if (password.errors?.['minlength'] && password.touched) {
-              <p class="error-line">Minimum 6 characters</p>
+              <p class="error-line">Minimum 8 characters</p>
+            }
+
+            @if (password.errors?.['server']) {
+              <p class="error-line">{{ password.errors?.['server'] }}</p>
             }
           </div>
         </div>
@@ -105,11 +130,22 @@
             <input
               id="confirm-password"
               name="confirm-password"
-              type="password"
-              autocomplete="current-password"
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              autocomplete="new-password"
               placeholder="Enter your password"
               formControlName="confirmPassword"
             />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="toggleConfirmPassword()"
+              [attr.aria-label]="showConfirmPassword() ? 'Hide password' : 'Show password'"
+              [attr.aria-pressed]="showConfirmPassword()"
+            >
+              <mat-icon class="material-icons-outlined">
+                {{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}
+              </mat-icon>
+            </button>
           </div>
           <div class="error">
             <div class="error">
@@ -152,6 +188,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Failures that belong to no single field. Field-specific ones print above. -->
+      @if (serverError()) {
+        <div class="server-error">
+          <mat-icon class="material-icons-outlined">error_outline</mat-icon>
+          <p class="error-line">{{ serverError() }}</p>
+        </div>
+      }
 
       <button type="submit" class="login-btn submit-button">
         @if (isLoading()) {

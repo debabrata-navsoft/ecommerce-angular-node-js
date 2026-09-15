@@ -14,10 +14,6 @@ export function verifyToken(token) {
   return jwt.verify(token, env.jwtSecret);
 }
 
-/**
- * httpOnly so the token is unreachable from JS (unlike the old localStorage session_role),
- * and SameSite=Lax so it still rides along on the SSR navigation requests.
- */
 export function setAuthCookie(res, token) {
   res.cookie(AUTH_COOKIE, token, {
     httpOnly: true,

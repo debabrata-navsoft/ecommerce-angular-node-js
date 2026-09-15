@@ -3,10 +3,12 @@ import { body } from 'express-validator';
 
 import {
   changePassword,
+  forgotPassword,
   login,
   loginAdmin,
   logout,
   me,
+  resetPassword,
   signup,
   updateMe,
 } from '../controllers/auth.controller.js';
@@ -57,6 +59,26 @@ router.post(
   ],
   validate,
   changePassword,
+);
+
+router.post(
+  '/forgot-password',
+  [body('email').isEmail().withMessage('A valid email is required').normalizeEmail()],
+  validate,
+  forgotPassword,
+);
+
+router.post(
+  '/reset-password',
+  [
+    body('token').isString().notEmpty().withMessage('Reset token is required'),
+    body('password')
+      .isString()
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters'),
+  ],
+  validate,
+  resetPassword,
 );
 
 export default router;
