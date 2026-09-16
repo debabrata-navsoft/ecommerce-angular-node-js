@@ -1,58 +1,64 @@
-<h2>My Orders</h2>
+<div class="section-head">
+  <h2>My Orders</h2>
+  @if (orders().length > 0) {
+    <span class="count">
+      {{ orders().length }} {{ orders().length === 1 ? 'order' : 'orders' }}
+    </span>
+  }
+</div>
 
 @if (orders().length > 0) {
   @for (order of orders(); track order.orderId) {
-    <div class="card-box">
-      <p><strong>Order ID:</strong> {{ order.orderId }}</p>
+    <article class="order-card">
+      <header class="order-head">
+        <div class="order-id">
+          <span class="label">Order ID</span>
+          <code>{{ order.orderId }}</code>
+        </div>
 
-      <p>
-        <strong>Placed On:</strong>
-        {{ order.createdAt | date: 'medium' }}
-      </p>
+        <span class="status-pill" [ngClass]="'status-' + order.status">
+          {{ order.status | titlecase }}
+        </span>
+      </header>
 
-      <p>
-        <strong>Total:</strong>
-        ₹ {{ order.total | number: '1.0-0' }}.00
-      </p>
+      <div class="order-meta">
+        <div>
+          <span class="label">Placed on</span>
+          <strong>{{ order.createdAt | date: 'd MMM y, h:mm a' }}</strong>
+        </div>
 
-      <p>
-        <strong>Status:</strong>
-        {{ order.status | titlecase }}
-      </p>
+        <div class="meta-total">
+          <span class="label">Total</span>
+          <strong>₹{{ order.total | number: '1.0-0' }}</strong>
+        </div>
+      </div>
 
-      <h3>Products</h3>
+      <div class="order-items">
+        @for (item of order.items; track item.productId) {
+          <div class="order-product" (click)="viewProductDetails(item.productId)">
+            <img [src]="item.image" [alt]="item.title" loading="lazy" />
 
-      @for (item of order.items; track item.productId) {
-        <div class="order-product" (click)="viewProductDetails(item.productId)">
-          <img [src]="item.image" />
+            <div class="item-info">
+              <h4>{{ item.title }}</h4>
+              <p class="qty">Qty: {{ item.quantity }}</p>
+            </div>
 
-          <div>
-            <h4>{{ item.title }}</h4>
-            <p>Qty: {{ item.quantity }}</p>
+            <div class="item-price">
+              <span class="final-price">₹{{ getDiscountPrice(item) | number: '1.0-0' }}</span>
 
-            <div class="price-box">
-              <div>
-                @if (item.discount && item.discount > 0) {
-                  <span class="discount"> -{{ item.discount }}% </span>
-                }
-
-                <span class="final-price">
-                  ₹{{ getDiscountPrice(item) | number: '1.0-0' }}.00
-                </span>
-              </div>
-
-              <p class="original-price-mrp">
-                M.R.P.:
-                <span class="original-price"> ₹{{ item.price | number: '1.0-0' }}.00 </span>
-              </p>
+              @if (item.discount && item.discount > 0) {
+                <span class="original-price">₹{{ item.price | number: '1.0-0' }}</span>
+                <span class="discount">-{{ item.discount }}%</span>
+              }
             </div>
           </div>
-        </div>
-      }
-    </div>
+        }
+      </div>
+    </article>
   }
 } @else {
-  <div class="card-box">
-    <p>No orders yet</p>
+  <div class="empty-state">
+    <p class="empty-title">No orders yet</p>
+    <p class="empty-sub">Orders you place will appear here.</p>
   </div>
 }

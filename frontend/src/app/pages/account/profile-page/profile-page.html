@@ -15,23 +15,49 @@
       </div>
 
       <ul class="menu-list">
-        <li (click)="changeSection('orders')" [class.active]="activeSection === 'orders'">
-          My Orders
+        <li>
+          <button
+            type="button"
+            (click)="changeSection('orders')"
+            [class.active]="activeSection === 'orders'"
+          >
+            My Orders
+          </button>
         </li>
 
-        <li (click)="changeSection('profile')" [class.active]="activeSection === 'profile'">
-          My Details
+        <li>
+          <button
+            type="button"
+            (click)="changeSection('profile')"
+            [class.active]="activeSection === 'profile'"
+          >
+            My Details
+          </button>
         </li>
 
-        <li (click)="changeSection('address')" [class.active]="activeSection === 'address'">
-          Address Book
+        <li>
+          <button
+            type="button"
+            (click)="changeSection('address')"
+            [class.active]="activeSection === 'address'"
+          >
+            Address Book
+          </button>
         </li>
 
-        <li (click)="changeSection('payment')" [class.active]="activeSection === 'payment'">
-          Payment Methods
+        <li>
+          <button
+            type="button"
+            (click)="changeSection('payment')"
+            [class.active]="activeSection === 'payment'"
+          >
+            Payment Methods
+          </button>
         </li>
 
-        <li (click)="logout()">Sign Out</li>
+        <li>
+          <button type="button" class="sign-out" (click)="logout()">Sign Out</button>
+        </li>
       </ul>
     </aside>
 
@@ -50,10 +76,14 @@
       }
 
       @if (activeSection === 'payment') {
-        <h2>Payment Methods</h2>
+        <div class="section-head">
+          <h2>Payment Methods</h2>
+        </div>
 
-        <div class="card-box">
-          <button>Add New Payment Method</button>
+        <div class="empty-state">
+          <p class="empty-title">No saved payment methods</p>
+          <p class="empty-sub">Cards and UPI you save at checkout will appear here.</p>
+          <button type="button" class="primary-btn">Add New Payment Method</button>
         </div>
       }
     </section>
