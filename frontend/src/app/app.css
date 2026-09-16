@@ -1,0 +1,32 @@
+/*
+ * Global circular loader, driven by loadingInterceptor for every API call on every page,
+ * including the first load after a refresh.
+ *
+ * The spinner inside (`.loader-container`) already positions itself fixed and centred, so
+ * this wrapper only supplies the dimmed backdrop and — importantly — `pointer-events: none`.
+ * Without that, the full-viewport overlay would swallow every click for as long as any
+ * request was in flight.
+ */
+.global-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  animation: global-loader-in 0.15s ease-out;
+}
+
+@keyframes global-loader-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-loader {
+    animation: none;
+  }
+}

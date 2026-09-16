@@ -95,6 +95,49 @@
         }
       </div>
     </div>
+
+    @if (related().length) {
+      <section class="related">
+        <h2 class="related-head">Related products</h2>
+
+        <div class="related-grid">
+          @for (item of related(); track item.id) {
+            <article class="related-card" (click)="viewProduct(item.id!)">
+              <div class="related-media">
+                @if (item.discount && item.discount > 0) {
+                  <span class="badge-discount">-{{ item.discount }}%</span>
+                }
+
+                <img [src]="item.image" [alt]="item.title" loading="lazy" decoding="async" />
+              </div>
+
+              <div class="related-body">
+                <h3 class="related-title">{{ item.title }}</h3>
+
+                <div class="rating">
+                  @for (star of getRating().getStars(item.rating || 0); track $index) {
+                    <span [ngClass]="star">&#9733;</span>
+                  }
+                  <span class="rating-number">{{ item.rating ?? 0 }}</span>
+                </div>
+
+                <div class="related-price">
+                  <span class="final-price">₹{{ getDiscountPrice(item) | number: '1.0-0' }}</span>
+
+                  @if (item.discount && item.discount > 0) {
+                    <span class="original-price">₹{{ item.price | number: '1.0-0' }}</span>
+                  }
+                </div>
+
+                @if (item.stock === 0) {
+                  <span class="related-stock">Out of stock</span>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
   </div>
 } @else {
   <div class="empty-state">

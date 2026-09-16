@@ -14,6 +14,8 @@ import { LoaderService } from '../../../core/services/loader.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
 
+const MAX_RELATED = 8;
+
 @Component({
   selector: 'app-product-detail-page',
   standalone: true,
@@ -39,6 +41,9 @@ export class ProductDetailPage implements OnInit {
   stars = signal<string[]>([]);
   errorMsg = signal(false);
 
+  /** Same subcategory, current product excluded. Empty until the product resolves. */
+  related = signal<Product[]>([]);
+
   ngOnInit(): void {
     const routeSub = this.route.paramMap.subscribe((params) => {
       const productId = params.get('id');
@@ -49,13 +54,14 @@ export class ProductDetailPage implements OnInit {
 
       this.errorMsg.set(false);
       this.product.set(null);
+      this.related.set([]);
 
       const productSub = this.productService.getProductById(productId).subscribe({
         next: (res) => {
           this.product.set(res as Product);
           this.stars.set(Rating.getStars(res?.rating || 0));
           // this.stars.set(Rating.getStars(this.product()?.rating || 0));
-          console.log(res);
+          this.loadRelated(res as Product);
           this.loaderService.hide();
         },
 
@@ -76,8 +82,34 @@ export class ProductDetailPage implements OnInit {
     });
   }
 
+  /**
+   * Reuses the catalogue filter, which matches `category` OR `subCategory` server-side, so
+   * no dedicated endpoint is needed. Failures are swallowed — the strip is supplementary
+   * and must never take the page down with it.
+   */
+  private loadRelated(product: Product) {
+    const slug = product?.subCategory || product?.category;
+    if (!slug) return;
+
+    const sub = this.productService.getProductsByCategory(slug).subscribe({
+      next: (items) =>
+        this.related.set(items.filter((p) => p.id !== product.id).slice(0, MAX_RELATED)),
+      error: () => this.related.set([]),
+    });
+
+    this.destroyRef.onDestroy(() => sub.unsubscribe());
+  }
+
   getDiscountPrice(item: Product): number {
     return this.productService.getDiscountPrice(item);
+  }
+
+  getRating() {
+    return Rating;
+  }
+
+  viewProduct(id: string) {
+    this.router.navigate(['/products', id]);
   }
 
   addToCart(product: Product) {
