@@ -2,7 +2,6 @@ import { validationResult } from 'express-validator';
 
 import { ApiError } from '../utils/api-error.js';
 
-/** Place after a chain of express-validator rules to turn failures into a 400. */
 export function validate(req, _res, next) {
   const result = validationResult(req);
   if (result.isEmpty()) return next();

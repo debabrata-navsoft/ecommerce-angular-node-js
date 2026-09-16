@@ -1,4 +1,4 @@
-import { connectDatabase, disconnectDatabase } from '../config/db.js';
+import { connectDB, disconnectDB } from '../config/db.js';
 import { env } from '../config/env.js';
 import { CartItem } from '../models/cart-item.model.js';
 import { SavedLaterItem } from '../models/saved-later-item.model.js';
@@ -71,7 +71,7 @@ async function seedProducts() {
 }
 
 async function main() {
-  await connectDatabase();
+  await connectDB();
 
   if (reset) {
     await Promise.all([
@@ -98,12 +98,12 @@ async function main() {
   ]);
   console.log('[seed] indexes synced');
 
-  await disconnectDatabase();
+  await disconnectDB();
   console.log('[seed] done');
 }
 
 main().catch(async (err) => {
   console.error('[seed] failed:', err.message);
-  await disconnectDatabase().catch(() => {});
+  await disconnectDB().catch(() => {});
   process.exit(1);
 });

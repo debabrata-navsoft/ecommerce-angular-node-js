@@ -1,32 +1,24 @@
 import mongoose from 'mongoose';
 
-import { env, isProduction } from './env.js';
+import { env } from './env.js';
 
 mongoose.set('strictQuery', true);
-if (!isProduction) {
-  mongoose.set('debug', false);
-}
 
-export async function connectDatabase() {
-  mongoose.connection.on('connected', () => console.log('[db] connected'));
-  mongoose.connection.on('disconnected', () => console.warn('[db] disconnected'));
-  mongoose.connection.on('error', (err) => console.error('[db] error', err.message));
+export const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(env.mongodbUri);
+    console.log(`MongoDB connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`Error connecting to MongoDB: ${error.message}`);
+    process.exit(1);
+  }
+};
 
-  await mongoose.connect(env.mongodbUri, {
-    serverSelectionTimeoutMS: 10_000,
-  });
-
-  return mongoose.connection;
-}
-
-export async function disconnectDatabase() {
+export const disconnectDB = async () => {
   await mongoose.connection.close(false);
-}
+};
 
-/**
- * Transactions need a replica set. Standalone `mongod` (the common local setup) does not
- * support them, so multi-document writes fall back to running sequentially without a session.
- */
+ // Transactions need a replica set. Standalone `mongod` (the common local setup) does not
 export async function withTransaction(work) {
   let session;
   try {

@@ -6,11 +6,6 @@ import { sendPasswordResetEmail } from '../services/mailer.js';
 import { ApiError } from '../utils/api-error.js';
 import { clearAuthCookie, setAuthCookie, signToken } from '../utils/token.js';
 
-/**
- * The customer and admin areas keep separate entry points over one credential store: each
- * login route accepts exactly one role and refuses the other, so an admin credential
- * cannot open a customer session or vice versa.
- */
 function issueSession(res, user) {
   setAuthCookie(res, signToken(user));
   return user.toJSON();
@@ -40,19 +35,12 @@ export async function signup(req, res) {
   res.status(201).json({ user: issueSession(res, user) });
 }
 
-/**
- * `details` uses the same `[{ field, message }]` shape the validation middleware emits, so
- * the client has one way to attach any server error to the field it belongs to.
- */
 const fieldError = (field, message) => [{ field, message }];
 
 const loginAs = (expectedRole) => async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
 
-  // The two cases are reported separately, by request, so the form can tell the visitor
-  // which field to fix. Note the trade-off this accepts: anyone can now probe the endpoint
-  // to learn whether an address has an account here.
   if (!user) {
     throw ApiError.unauthorized(
       'This email is not registered',
@@ -91,7 +79,6 @@ export async function me(req, res) {
   res.json({ user: req.user ? req.user.toJSON() : null });
 }
 
-/** Only these three fields; role and addresses have their own routes. */
 export function profileChanges({ firstName, lastName, phoneNumber }) {
   const changes = {};
   if (firstName !== undefined) changes.firstName = firstName;
@@ -132,12 +119,6 @@ const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 const hashResetToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
-/**
- * Step one of the reset: mint a single-use token, store only its hash, and email the link.
- *
- * Reports an unknown address, matching the login form. The send is not awaited — SMTP is
- * slow and a delivery failure must not fail the request; the mailer logs its own errors.
- */
 export async function forgotPassword(req, res) {
   const { email } = req.body;
   const user = await User.findOne({ email: email.toLowerCase() });
@@ -160,7 +141,6 @@ export async function forgotPassword(req, res) {
   res.status(204).end();
 }
 
-/** Step two: spend the token and set the new password. */
 export async function resetPassword(req, res) {
   const { token, password } = req.body;
 
@@ -169,8 +149,6 @@ export async function resetPassword(req, res) {
     resetTokenExpiresAt: { $gt: new Date() },
   }).select('+resetTokenHash +resetTokenExpiresAt');
 
-  // One message for "never issued", "already used" and "expired": the caller cannot tell
-  // them apart, and the only useful next step is the same in all three.
   if (!user) {
     throw ApiError.badRequest('This reset link is invalid or has expired. Request a new one.');
   }
@@ -180,7 +158,5 @@ export async function resetPassword(req, res) {
   user.resetTokenExpiresAt = undefined;
   await user.save();
 
-  // Deliberately no session here: finishing a reset does not sign the visitor in. They
-  // land back on /login and prove they know the new password.
   res.status(204).end();
 }

@@ -33,7 +33,6 @@ export function clearAuthCookie(res) {
   });
 }
 
-/** Cookie first, then `Authorization: Bearer …` for non-browser clients. */
 export function readToken(req) {
   const fromCookie = req.cookies?.[AUTH_COOKIE];
   if (fromCookie) return fromCookie;

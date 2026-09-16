@@ -26,12 +26,6 @@ export async function createRazorpayOrder({ amount, receipt, notes }) {
   return { id: order.id, amount: order.amount, currency: order.currency };
 }
 
-/**
- * The key security gain over the previous client-only flow: the browser used to hand back
- * `razorpay_payment_id` and the app took it at face value. Now the HMAC over
- * `<order_id>|<payment_id>` is recomputed with the secret, which only the server holds,
- * so a forged success callback cannot mark an order paid.
- */
 export function verifyPaymentSignature({ razorpayOrderId, razorpayPaymentId, signature }) {
   if (!razorpayConfigured) {
     throw ApiError.unavailable('Razorpay is not configured on this server');

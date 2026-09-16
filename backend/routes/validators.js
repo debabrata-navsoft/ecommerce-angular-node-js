@@ -6,10 +6,6 @@ export const objectIdParam = (name) =>
 export const objectIdBody = (name) =>
   body(name).isMongoId().withMessage(`${name} must be a valid id`);
 
-/**
- * Matches `AddressUser` / `OrderAddress` in the Angular models. `pinCode` is stored as a
- * string because the client model allows `string | number` and leading zeros matter.
- */
 export const addressRules = (prefix = '') => {
   const at = (field) => (prefix ? `${prefix}.${field}` : field);
 

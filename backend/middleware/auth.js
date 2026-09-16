@@ -2,11 +2,6 @@ import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/api-error.js';
 import { readToken, verifyToken } from '../utils/token.js';
 
-/**
- * Populates req.user when a valid token is present and otherwise does nothing, so public
- * endpoints can vary their response for signed-in visitors. An expired or tampered token
- * is treated as anonymous rather than an error — requireAuth is what rejects.
- */
 export async function authenticate(req, _res, next) {
   req.user = null;
 
@@ -20,8 +15,6 @@ export async function authenticate(req, _res, next) {
     return next();
   }
 
-  // Re-read the user so a role change or deletion takes effect immediately instead of
-  // waiting for the token to expire.
   const user = await User.findById(payload.sub);
   if (user) req.user = user;
 
@@ -45,7 +38,6 @@ export function requireRole(...roles) {
 
 export const requireAdmin = requireRole('admin');
 
-/** Lets a user read/write their own sub-resources while admins reach anyone's. */
 export function requireSelfOrAdmin(param = 'id') {
   return (req, _res, next) => {
     if (!req.user) return next(ApiError.unauthorized());

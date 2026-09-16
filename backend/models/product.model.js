@@ -7,30 +7,19 @@ const { Schema } = mongoose;
 const productSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
-
-    // Lowercased title, maintained below, so searches never depend on a case-insensitive
-    // scan of the original casing.
     searchName: { type: String, index: true },
-
     price: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0, default: 0 },
     brand: { type: String, required: true, trim: true },
     color: { type: String, trim: true, default: '' },
-
-    // Compared lowercased against the slugs in src/app/data/category.data.ts.
     category: { type: String, required: true, trim: true, lowercase: true, index: true },
     subCategory: { type: String, trim: true, lowercase: true, default: '', index: true },
-
     image: { type: String, required: true, trim: true },
     description: { type: String, default: '' },
-
     sales: { type: Number, default: 0, min: 0 },
     views: { type: Number, default: 0, min: 0 },
     discount: { type: Number, default: 0, min: 0, max: 100 },
-
-    // Derived from price/discount so it can be sorted and filtered in Mongo.
     discountPrice: { type: Number, default: 0, min: 0 },
-
     rating: { type: Number, default: 0, min: 0, max: 5 },
   },
   { timestamps: true },
@@ -55,10 +44,6 @@ productSchema.pre('save', function (next) {
   next();
 });
 
-/**
- * `findOneAndUpdate` bypasses the pre-save hook, so the admin PATCH path has to recompute
- * the derived fields itself.
- */
 productSchema.pre('findOneAndUpdate', async function (next) {
   const update = this.getUpdate() ?? {};
   const $set = update.$set ?? update;

@@ -1,10 +1,5 @@
 const millis = (value) => (value instanceof Date ? value.getTime() : (value ?? null));
 
-/**
- * Flattens a populated line item into the shape `models/cart.model.ts` declares.
- * Returns null when the referenced product has since been deleted, so callers can
- * drop the orphan rather than render a blank row.
- */
 export function toCartItem(doc) {
   const product = doc.productId;
   if (!product || !product._id) return null;
@@ -25,7 +20,6 @@ export function toCartItem(doc) {
   };
 }
 
-/** The wishlist is rendered as `Product[]`, so return the product with the pin time. */
 export function toWishlistProduct(doc) {
   const product = doc.productId;
   if (!product || !product._id) return null;
@@ -40,7 +34,6 @@ export function mapDefined(docs, mapper) {
   return docs.map(mapper).filter(Boolean);
 }
 
-/** Snapshot a populated cart row into an immutable order line. */
 export function toOrderItem(doc) {
   const product = doc.productId;
   return {

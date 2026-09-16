@@ -3,12 +3,6 @@ import { Product } from '../models/product.model.js';
 import { ApiError } from '../utils/api-error.js';
 import { mapDefined } from '../utils/serialize.js';
 
-/**
- * Shared behaviour for the three per-user product lists (cart, wishlist, saved-later).
- * Every read populates the product so the caller always sees current price and stock;
- * rows whose product has been deleted are dropped rather than returned half-empty.
- */
-
 const PRODUCT_FIELDS =
   'title price stock brand color category subCategory image description sales views discount discountPrice rating createdAt updatedAt';
 
@@ -23,12 +17,6 @@ async function loadPopulated(Model, id) {
   return Model.findById(id).populate('productId', PRODUCT_FIELDS);
 }
 
-/**
- * Adds a product to a list, or bumps its quantity when `increment` is set (the cart).
- * `$inc` on an existing row plus create-on-miss keeps this safe under concurrent clicks —
- * a duplicate-key collision just means another request won the race, so we retry the
- * increment instead of failing the user's action.
- */
 export async function addLineItem(Model, userId, productId, { increment = false } = {}) {
   const product = await Product.findById(productId).select('stock');
   if (!product) throw ApiError.notFound('Product not found');
@@ -88,11 +76,6 @@ export function clearList(Model, userId) {
   return Model.deleteMany({ userId });
 }
 
-/**
- * Moves a row between two lists in one call — this is what makes "save for later" and
- * "move to cart" atomic. The old CartService.saveForLater() only did the removal and
- * relied on the caller to remember the matching SaveLaterService.saveForLater().
- */
 export async function moveLineItem(FromModel, ToModel, userId, productId) {
   await withTransaction(async (session) => {
     const options = session ? { session } : {};

@@ -7,7 +7,6 @@ export function notFound(req, _res, next) {
   next(ApiError.notFound(`Cannot ${req.method} ${req.originalUrl}`));
 }
 
-/** Translates driver/library errors into the same { message, details } envelope. */
 function normalize(err) {
   if (err instanceof ApiError) return err;
 

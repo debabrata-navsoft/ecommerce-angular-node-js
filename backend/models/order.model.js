@@ -6,7 +6,6 @@ import { serializeJson } from '../utils/mongoose-json.js';
 
 const { Schema } = mongoose;
 
-/** Short, URL-safe, unguessable — it appears in /cart/order-success/:id. */
 export function generateOrderId() {
   return crypto.randomBytes(9).toString('base64url');
 }
@@ -54,7 +53,6 @@ const orderSchema = new Schema(
     total: { type: Number, required: true, min: 0 },
     shippingMethod: { type: String, enum: ['free', 'express'], default: 'free' },
 
-    // Fulfilment state — distinct from paymentStatus, matching models/payment.model.ts.
     status: {
       type: String,
       enum: ['pending', 'shipped', 'delivered', 'cancelled'],
@@ -78,7 +76,6 @@ const orderSchema = new Schema(
   { timestamps: true },
 );
 
-// Clients address an order by its public orderId, not the Mongo _id.
 serializeJson(orderSchema, {
   after(ret) {
     ret.id = ret.orderId;
@@ -87,7 +84,6 @@ serializeJson(orderSchema, {
   },
 });
 
-// Drives both the customer's order history and the admin list.
 orderSchema.index({ userId: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
 

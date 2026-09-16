@@ -4,7 +4,7 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { connectDatabase, disconnectDatabase } from './config/db.js';
+import { connectDB } from './config/db.js';
 import { env, isProduction, razorpayConfigured } from './config/env.js';
 import { authenticate } from './middleware/auth.js';
 import { errorHandler, notFound } from './middleware/error.js';
@@ -45,31 +45,21 @@ export function createApp() {
   return app;
 }
 
-async function main() {
-  await connectDatabase();
+const startServer = async () => {
+  try {
+    await connectDB();
 
-  const server = createApp().listen(env.port, () => {
-    console.log(`[api] listening on http://localhost:${env.port} (${env.nodeEnv})`);
-    console.log(`[api] cors origins: ${env.corsOrigins.join(', ') || '(none)'}`);
-    if (!razorpayConfigured) {
-      console.warn('[api] RAZORPAY_KEY_ID/SECRET not set — only "cod" orders will work');
-    }
-  });
+    const server = createApp();
 
-  const shutdown = async (signal) => {
-    console.log(`\n[api] ${signal} received, shutting down`);
-    server.close(async () => {
-      await disconnectDatabase();
-      process.exit(0);
+    server.listen(env.port, () => {
+      console.log(`Server running on port ${env.port}`);
+      if (!razorpayConfigured) {
+        console.warn('RAZORPAY_KEY_ID/SECRET not set — only "cod" orders will work');
+      }
     });
-    setTimeout(() => process.exit(1), 10_000).unref();
-  };
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-}
-
-main().catch((err) => {
-  console.error('[api] failed to start:', err.message);
-  process.exit(1);
-});
+startServer();
