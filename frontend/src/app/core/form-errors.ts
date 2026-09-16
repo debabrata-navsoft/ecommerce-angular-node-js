@@ -2,7 +2,6 @@ import { FormGroup } from '@angular/forms';
 
 import { ApiFailure } from './api.service';
 
-/** One entry of the API's `details` array. */
 interface FieldIssue {
   field: string;
   message: string;
