@@ -2,9 +2,8 @@ import { razorpayConfigured } from '../config/env.js';
 import { abandonOrder } from '../services/orders.js';
 import { razorpayPublicKey, verifyPaymentSignature } from '../services/razorpay.js';
 import { ApiError } from '../utils/api-error.js';
-import { loadOwnedOrder } from './order.controller.js';
+import { loadOwnedOrder, publishOrder } from './order.controller.js';
 
-/** Lets the client know whether online payment is available before it offers the option. */
 export async function getPaymentConfig(_req, res) {
   res.json({ razorpay: { configured: razorpayConfigured, keyId: razorpayPublicKey() } });
 }
@@ -13,13 +12,14 @@ export async function verifyPayment(req, res) {
   const { razorpayPaymentId, razorpayOrderId, signature } = req.body;
   const order = await loadOwnedOrder(req);
 
-  // Already settled — a replayed callback is harmless.
   if (['paid', 'confirmed'].includes(order.paymentStatus)) {
     return res.json({ order: order.toJSON() });
   }
 
-  // Bind the callback to the Razorpay order this order actually created, so a valid
-  // signature from some *other* payment cannot be replayed onto this one.
+  if (order.status === 'cancelled') {
+    throw ApiError.badRequest('This order was cancelled and can no longer be paid');
+  }
+
   if (!order.razorpayOrderId || order.razorpayOrderId !== razorpayOrderId) {
     throw ApiError.badRequest('Payment does not belong to this order');
   }
@@ -33,6 +33,7 @@ export async function verifyPayment(req, res) {
   order.razorpayPaymentId = razorpayPaymentId;
   await order.save();
 
+  publishOrder(order);
   res.json({ order: order.toJSON() });
 }
 
@@ -41,5 +42,6 @@ export async function abandonPayment(req, res) {
   const reason = req.body?.reason === 'cancelled' ? 'cancelled' : 'failed';
   const order = await abandonOrder(await loadOwnedOrder(req), { reason });
 
+  publishOrder(order);
   res.json({ order: order.toJSON() });
 }

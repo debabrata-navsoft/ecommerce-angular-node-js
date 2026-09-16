@@ -61,6 +61,16 @@ export class ProfilePage implements OnInit {
         },
       });
 
+    const streamSub = this.orderService.streamOrders().subscribe({
+      next: ({ order, visible }) => {
+        const rest = this.orders().filter((o) => o.orderId !== order.orderId);
+        this.orders.set(visible ? [order, ...rest] : rest);
+      },
+      error: (err) => console.error('Order stream error:', err),
+    });
+
+    this.destroyRef.onDestroy(() => streamSub.unsubscribe());
+
     // const userSub = this.authService.getFullUser().subscribe({
     //   next: (user) => {
     //     this.user.set(user);

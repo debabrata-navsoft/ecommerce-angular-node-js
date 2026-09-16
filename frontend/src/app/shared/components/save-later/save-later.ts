@@ -23,7 +23,6 @@ export class SaveLater {
 
   moveToCart(item: CartItem) {
     this.saveLaterService.moveToCart(item);
-    this.cartService.addCartItemToCart(item);
   }
 
   remove(id: string) {

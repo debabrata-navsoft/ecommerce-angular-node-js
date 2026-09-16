@@ -5,6 +5,13 @@
     <div class="payment-left">
       <h2>Choose Payment Method</h2>
 
+      @if (!onlineAvailable()) {
+        <div class="payment-notice">
+          Online payment is unavailable on this server. Cash on Delivery is the only option right
+          now.
+        </div>
+      }
+
       <div class="payment-card" (click)="select('cod')" [class.active]="selectedMethod() === 'cod'">
         <div class="radio" [class.checked]="selectedMethod() === 'cod'"></div>
         <div class="info">
@@ -13,7 +20,12 @@
         </div>
       </div>
 
-      <div class="payment-card" (click)="select('upi')" [class.active]="selectedMethod() === 'upi'">
+      <div
+        class="payment-card"
+        (click)="select('upi')"
+        [class.active]="selectedMethod() === 'upi'"
+        [class.disabled]="!onlineAvailable()"
+      >
         <div class="radio" [class.checked]="selectedMethod() === 'upi'"></div>
         <div class="payment-card-img">
           <div class="info">
@@ -40,6 +52,7 @@
         class="payment-card"
         (click)="select('card')"
         [class.active]="selectedMethod() === 'card'"
+        [class.disabled]="!onlineAvailable()"
       >
         <div class="radio" [class.checked]="selectedMethod() === 'card'"></div>
 
@@ -68,7 +81,12 @@
       </div>
     } -->
 
-      <div class="payment-card" (click)="select('emi')" [class.active]="selectedMethod() === 'emi'">
+      <div
+        class="payment-card"
+        (click)="select('emi')"
+        [class.active]="selectedMethod() === 'emi'"
+        [class.disabled]="!onlineAvailable()"
+      >
         <div class="radio" [class.checked]="selectedMethod() === 'emi'"></div>
 
         <div class="payment-card-img">
@@ -92,6 +110,7 @@
         class="payment-card"
         (click)="select('netbanking')"
         [class.active]="selectedMethod() === 'netbanking'"
+        [class.disabled]="!onlineAvailable()"
       >
         <div class="radio" [class.checked]="selectedMethod() === 'netbanking'"></div>
         <div class="payment-card-img">

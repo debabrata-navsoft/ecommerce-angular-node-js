@@ -6,13 +6,9 @@ import { WishlistItem } from '../models/wishlist-item.model.js';
 import { Order } from '../models/order.model.js';
 import { Product } from '../models/product.model.js';
 import { User } from '../models/user.model.js';
-import { SAMPLE_PRODUCTS } from './products.data.js';
 
 const reset = process.argv.includes('--reset');
 
-// The admin email is a login credential for /admin, and every login route validates the
-// field as an email address — so a bare username here would create an account that can
-// never sign in. Fail now with an explanation rather than later with a confusing 400.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function seedAdmin() {
@@ -31,8 +27,6 @@ async function seedAdmin() {
 
   const passwordHash = await User.hashPassword(password);
 
-  // Upsert so re-running the seed rotates the password instead of erroring on the
-  // unique email index.
   const admin = await User.findOneAndUpdate(
     { email: email.toLowerCase() },
     {
@@ -42,32 +36,7 @@ async function seedAdmin() {
     { new: true, upsert: true, setDefaultsOnInsert: true },
   );
 
-  console.log(`[seed] admin ready: ${admin.email}`);
-}
-
-async function seedProducts() {
-  if (reset) {
-    const { deletedCount } = await Product.deleteMany({});
-    console.log(`[seed] removed ${deletedCount} existing products`);
-  }
-
-  let created = 0;
-  let skipped = 0;
-
-  for (const data of SAMPLE_PRODUCTS) {
-    const exists = await Product.exists({ title: data.title });
-    if (exists) {
-      skipped += 1;
-      continue;
-    }
-
-    // .create() rather than insertMany so the pre-save hook fills in searchName and
-    // discountPrice.
-    await Product.create(data);
-    created += 1;
-  }
-
-  console.log(`[seed] products: ${created} created, ${skipped} already present`);
+  console.log(`[setup] admin ready: ${admin.email}`);
 }
 
 async function main() {
@@ -80,14 +49,11 @@ async function main() {
       SavedLaterItem.deleteMany({}),
       Order.deleteMany({}),
     ]);
-    console.log('[seed] cleared carts, wishlists, saved-later and orders');
+    console.log('[setup] cleared carts, wishlists, saved-later and orders');
   }
 
   await seedAdmin();
-  await seedProducts();
 
-  // Builds the unique/compound indexes declared on the schemas so the first real request
-  // is not the thing that creates them.
   await Promise.all([
     User.syncIndexes(),
     Product.syncIndexes(),
@@ -96,14 +62,14 @@ async function main() {
     WishlistItem.syncIndexes(),
     SavedLaterItem.syncIndexes(),
   ]);
-  console.log('[seed] indexes synced');
+  console.log('[setup] indexes synced');
 
   await disconnectDB();
-  console.log('[seed] done');
+  console.log('[setup] done');
 }
 
 main().catch(async (err) => {
-  console.error('[seed] failed:', err.message);
+  console.error('[setup] failed:', err.message);
   await disconnectDB().catch(() => {});
   process.exit(1);
 });

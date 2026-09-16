@@ -20,8 +20,8 @@ npm run serve:ssr:ecommerce-ssr  # run the built SSR server (node dist/ecommerce
 cd backend
 npm run dev                      # node --watch, http://localhost:5000
 npm start                        # plain node
-npm run seed                     # admin user + 36 sample products + indexes
-npm run seed:reset               # wipe products/carts/wishlists/saved-later/orders first
+npm run seed                     # upsert the admin user + sync indexes
+npm run seed:reset               # wipe carts/wishlists/saved-later/orders first (never products)
 ```
 
 Run a single test: Karma has no `--grep` flag here. Either temporarily change `describe`/`it` to `fdescribe`/`fit`, or scope by file:
@@ -52,7 +52,7 @@ Source sits **directly in the package root — there is no `src/` wrapper.** `se
 the only entry point.
 
 ```
-server.js      app wiring + listen + graceful shutdown; exports createApp()
+server.js      app wiring + startServer(); exports createApp()
 config/        env.js (loads .env from the package root), db.js (connection, withTransaction)
 models/        Mongoose schemas
 controllers/   plain async request handlers, kept thin
@@ -60,7 +60,7 @@ routes/        express-validator chains + wiring
 services/      business logic (orders, inventory, pricing, line-items, razorpay, mailer)
 middleware/    auth, validate, error
 utils/         ApiError, JWT, shared serialization + paging
-seed/          seed script and sample catalogue
+seed/          seed.js — upserts the admin user and syncs indexes (no sample catalogue)
 ```
 
 `config/env.js` anchors `.env` to the package root by walking **one** level up from its own
@@ -254,6 +254,13 @@ is fulfilment (pending/shipped/delivered/cancelled) and `paymentStatus` is payme
 
 `CheckoutPage` collects the address and totals, then navigates to `/cart/payment` passing the payload through **router navigation state**, not a service. `PaymentPage` reads it in its constructor via `router.currentNavigation()?.extras?.state` and redirects home with a "Session expired" message if absent — so the payment page cannot be deep-linked or reloaded. `CheckoutPage` also has an `effect()` that bounces to `/` if the cart empties, explicitly skipped while on the payment URL and after `orderPlaced` is set.
 
+**`placeOrder` rejects a non-`cod` order with 503 up front when `razorpayConfigured` is
+false, before `createOrderFromCart` runs.** That call reserves stock and empties the cart,
+so discovering the missing keys afterwards (the old behaviour) left a cancelled order in
+the customer's history and threw their cart away on every attempt. The payment page also
+reads `GET /api/payments/config` on load and locks the online methods when the server
+cannot take them — keep both, the server-side one is the guarantee.
+
 The payment sequence is **order → pay → verify**:
 
 1. `POST /api/orders` with `{ address, shippingMethod, paymentMethod }` only. The API
@@ -269,12 +276,47 @@ browser-supplied `razorpay_payment_id` that nothing verified. **Do not move orde
 creation back after payment.**
 
 Dismissing the modal or a failed payment calls `POST /api/payments/:orderId/abandon`,
-which releases the stock the order reserved. `'cod'` skips Razorpay entirely and is
+which releases the stock the order reserved **and puts the items back in the cart**
+(`restoreCart` in `services/orders.js`, `$setOnInsert` so anything re-added meanwhile
+wins). Placing the order empties the cart, so without that step a cancelled payment left
+the customer with neither an order nor a cart. The payment page reloads the cart after
+every abandon — the local signal is otherwise stuck on its pre-checkout value.
+
+Two rules follow from an order being cancellable before payment:
+
+- **Both listings hide orders that are `cancelled` with `paymentStatus` `pending`/`failed`.**
+  Those are abandoned checkouts, not purchases; listing them made a dismissed Razorpay
+  modal look like a placed order. `NOT_ABANDONED` and `isAbandoned()` in
+  `order.controller.js` are the one definition, shared by `listMyOrders`, `listAllOrders`
+  (which also feeds the admin dashboard and user-detail page) and the live stream.
+  `GET /api/orders/all?includeAbandoned=true` brings them back for reconciliation.
+- **`verifyPayment` refuses an order whose `status` is `cancelled`.** Its stock is already
+  back in the pool, so a late callback marking it paid would leave it cancelled and paid
+  at once, holding stock that has been given away. `'cod'` skips Razorpay entirely and is
 written `paymentStatus: 'confirmed'`.
 
 Totals live in `backend/services/pricing.js` and are mirrored for display in
 `checkout-page.ts`: `gst = subTotal * 0.18`, `express` shipping = 90, `free` = 0. Change
 both or they drift.
+
+### Live order status (SSE)
+
+`GET /api/orders/stream` is a Server-Sent Events feed, so an admin moving an order to
+shipped or delivered lands on the customer's My Orders without a refresh. The open
+connections live in a `Set` in `order.controller.js`; `publishOrder(order)` is called after
+every order write (`placeOrder`, `updateOrderStatus`, `cancelMyOrder`, `verifyPayment`,
+`abandonPayment`). A customer receives only their own orders, an admin receives all.
+
+- The route **must stay above `/:orderId`** in `order.routes.js`, which would otherwise
+  match `stream` as an order id.
+- Each frame is `{ order, visible }`. `visible: false` means the order is now an abandoned
+  checkout — the client removes the row rather than leaving a cancelled one on screen.
+- `OrderService.streamOrders()` returns `EMPTY` during SSR (`EventSource` is browser-only)
+  and does **not** complete on error, because the browser reconnects by itself.
+- A 25s heartbeat comment frame keeps proxies from dropping an idle connection, and
+  `X-Accel-Buffering: no` stops nginx buffering the stream.
+- **In-process only.** With more than one API instance a client misses writes made by the
+  other; move the registry to Redis pub/sub before scaling out.
 
 ### Cross-cutting UI services
 
@@ -288,7 +330,7 @@ both or they drift.
 - Templates use the built-in control flow (`@if`, `@for`), not `*ngIf`/`*ngFor`.
 - Subscriptions are cleaned up with `inject(DestroyRef).onDestroy(() => sub.unsubscribe())` rather than `ngOnDestroy`.
 - TypeScript is `strict` with `noPropertyAccessFromIndexSignature`, so index-signature access is bracketed: `err.error?.['message']`. `strictTemplates` is on.
-- Shared helpers live under `shared/`: `shared/pipes/` (`truncate`, `time-ago`, `category-label`), `shared/directives/highlight.ts`, `shared/utils/rating.util.ts`. Category taxonomy is a static list in `shared/data/category.data.ts` — subcategory slugs there must match the `subCategory` values stored on product documents, since filtering compares them lowercased. `backend/seed/products.data.js` uses those same slugs.
+- Shared helpers live under `shared/`: `shared/pipes/` (`truncate`, `time-ago`, `category-label`), `shared/directives/highlight.ts`, `shared/utils/rating.util.ts`. Category taxonomy is a static list in `shared/data/category.data.ts` — subcategory slugs there must match the `subCategory` values stored on product documents, since filtering compares them lowercased. There is no seed catalogue to cross-check against any more, so a new subcategory must be matched by hand against what is actually in the `products` collection.
 - Backend: `backend/server.js` is the single entry point — it builds the app (exported as
   `createApp()` so it can be mounted in a test without opening a port) and starts it.
   Controllers stay thin and delegate to `backend/services/*`. Route files own validation via
@@ -328,5 +370,5 @@ both or they drift.
 - Several files carry large commented-out earlier revisions (`app.routes.server.ts`, `product-list-page.ts`, `payment-page.ts` predecessors). Read past them; do not treat them as reference implementations.
 - Two unrelated components are both named `TodayDeals` (`shared/components/categories/today-deals/` and `pages/sidebar/today-deals/`). Check the import path.
 - Addresses are keyed by **id**, not array index. The old code replaced the whole `addresses` array, which dropped any address added in another tab between read and write.
-- `CartService.saveForLater()` does the whole move in one request (`POST /api/cart/:productId/save-for-later`). Callers must **not** also call `removeItem()` — that was the old two-call requirement and it lost items when only half ran.
+- **Both list moves are single atomic requests, and pairing them with a second call is the recurring bug here.** `CartService.saveForLater()` (`POST /api/cart/:productId/save-for-later`) must **not** be followed by `removeItem()` — the old two-call requirement lost items when only half ran. `SaveLaterService.moveToCart()` (`POST /api/saved-later/:productId/move-to-cart`) must **not** be followed by `addCartItemToCart()` — the move already creates the cart row, so the extra `POST /cart` incremented it and every trip through Saved for Later bumped the quantity by one. `moveLineItem` `$set`s the quantity rather than incrementing, so the move alone is always correct.
 - Test coverage is three spec files (`app.spec.ts`, `shared/components/loader/loader.spec.ts`, `core/services/wishlist.service.spec.ts`); there is no established testing pattern for the API-backed services, and the backend has no tests yet.

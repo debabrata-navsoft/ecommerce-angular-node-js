@@ -46,8 +46,14 @@ export class OrderList implements OnInit {
       },
     });
 
+    const streamSub = this.orderService.streamOrders().subscribe({
+      next: ({ order, visible }) => this.applyLiveOrder(order, visible),
+      error: (err) => console.log(err),
+    });
+
     this.destroyRef.onDestroy(() => {
       orderSub.unsubscribe();
+      streamSub.unsubscribe();
     });
 
     // this.orderService.getAllOrders().subscribe((res) => {
@@ -58,12 +64,16 @@ export class OrderList implements OnInit {
     // });
   }
 
+  private applyLiveOrder(order: Order, visible: boolean) {
+    const rest = this.orders().filter((o) => o.orderId !== order.orderId);
+
+    this.orders.set(visible ? [order, ...rest] : rest);
+  }
+
   changeStatus(order: Order, event: Event) {
     const status = (event.target as HTMLSelectElement).value as Order['status'];
 
     const statusSub = this.orderService
-      // One `orders` collection now, so the status is written once instead of to both
-      // the user subcollection and the global mirror.
       .updateOrderStatus(order.orderId!, status)
       .subscribe({
         next: () => {

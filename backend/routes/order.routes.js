@@ -7,6 +7,7 @@ import {
   listAllOrders,
   listMyOrders,
   placeOrder,
+  streamOrders,
   updateOrderStatus,
 } from '../controllers/order.controller.js';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
@@ -19,9 +20,9 @@ router.use(requireAuth);
 
 router.get('/', listMyOrders);
 
-// Admin listing lives on its own path so it cannot be reached by adding a query param
-// to the customer's own-orders route.
 router.get('/all', requireAdmin, listAllOrders);
+
+router.get('/stream', streamOrders);
 
 router.post(
   '/',

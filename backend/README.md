@@ -12,7 +12,7 @@ MongoDB collections for data, JWT + bcrypt for auth, with roles on the user docu
 Source sits directly in the package root — there is no `src/` wrapper.
 
 ```
-server.js            entry point — app wiring + listen + graceful shutdown
+server.js            entry point — app wiring + startServer()
 config/              env (loads .env from the package root), db connection
 models/              Mongoose schemas
 controllers/         plain async request handlers
@@ -20,7 +20,7 @@ routes/              express-validator chains + wiring
 services/            business logic (orders, inventory, pricing, line lists, razorpay)
 middleware/          auth, validation, error handling
 utils/               ApiError, JWT, shared serialization + paging
-seed/                seed script and sample catalogue
+scripts/             setup.js — admin-user upsert + index sync
 ```
 
 Handlers are plain `async function`s with **no** try/catch wrapper — Express 5 forwards a
@@ -33,12 +33,16 @@ from inside an async handler is enough.
 cd backend
 npm install
 cp .env.example .env        # then fill in MONGODB_URI and JWT_SECRET
-npm run seed                # creates the admin user + 36 sample products, builds indexes
+npm run setup               # creates the admin user, builds indexes
 npm run dev                 # node --watch, http://localhost:5000
 ```
 
-`npm run seed:reset` wipes products, carts, wishlists, saved-later and orders first.
-Re-running the plain seed is safe: it upserts the admin and skips products already present.
+`npm run setup:reset` wipes carts, wishlists, saved-later and orders first. It does **not**
+touch products — there is no sample catalogue to restore them from, so the catalogue is
+only ever changed through the admin UI or the API.
+
+Re-running the plain setup is safe: it upserts the admin (rotating the password to whatever
+`SEED_ADMIN_PASSWORD` currently is) and re-syncs indexes.
 
 ### Environment
 

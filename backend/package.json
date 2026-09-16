@@ -11,8 +11,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node seed/seed.js",
-    "seed:reset": "node seed/seed.js --reset"
+    "setup": "node scripts/setup.js",
+    "setup:reset": "node scripts/setup.js --reset"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

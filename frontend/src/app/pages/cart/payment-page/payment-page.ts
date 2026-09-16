@@ -32,6 +32,9 @@ export class PaymentPage {
   selectedMethod = signal<PaymentMethod>('cod');
   orderData = signal<any>(null);
 
+  /** False once the server reports it has no Razorpay keys; the online cards then lock. */
+  onlineAvailable = signal(true);
+
   private paying = signal(false);
 
   form = {
@@ -50,21 +53,29 @@ export class PaymentPage {
     } else {
       this.snackbar.error('Session expired. Please try again.');
       this.router.navigate(['/']);
+      return;
     }
+
+    const sub = this.orderService.getPaymentConfig().subscribe({
+      next: (config) => {
+        this.onlineAvailable.set(config.razorpay.configured);
+        if (!config.razorpay.configured) this.selectedMethod.set('cod');
+      },
+
+      error: () => undefined,
+    });
+
+    this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
   select(method: PaymentMethod) {
+    if (method !== 'cod' && !this.onlineAvailable()) {
+      this.snackbar.error('Online payment is unavailable right now. Please use Cash on Delivery.');
+      return;
+    }
     this.selectedMethod.set(method);
   }
 
-  /**
-   * Order first, then pay.
-   *
-   * The previous flow paid first and created the order afterwards from data the browser
-   * had assembled — so the totals and the "paid" status were whatever the client claimed.
-   * Now the API builds the order from the server's own view of the cart, hands back a
-   * Razorpay order id, and only marks it paid once it has verified the signature.
-   */
   payNow() {
     const data = this.orderData();
     if (!data) {
@@ -107,7 +118,10 @@ export class PaymentPage {
       this.snackbar.error(
         'Online payment is unavailable right now. Please choose Cash on Delivery.',
       );
-      this.orderService.abandonPayment(orderId, 'failed').subscribe({ error: () => undefined });
+      this.orderService.abandonPayment(orderId, 'failed').subscribe({
+        next: () => this.cartService.loadCart(),
+        error: () => this.cartService.loadCart(),
+      });
       return;
     }
 
@@ -139,22 +153,23 @@ export class PaymentPage {
       next: () => this.finish(orderId),
       error: (err: Error) => {
         this.stop();
-        // The order stays on record as failed; the API already released the stock.
+        this.cartService.loadCart();
         this.snackbar.error(err.message || 'We could not verify the payment. Contact support.');
       },
     });
   }
 
-  /** Rolls the order back so the reserved stock is returned. */
   private release(orderId: string, reason: 'cancelled' | 'failed', message: string) {
     this.stop();
     this.snackbar.error(message);
-    this.orderService.abandonPayment(orderId, reason).subscribe({ error: () => undefined });
+    this.orderService.abandonPayment(orderId, reason).subscribe({
+      next: () => this.cartService.loadCart(),
+      error: () => this.cartService.loadCart(),
+    });
   }
 
   private finish(orderId: string) {
     this.stop();
-    // The API clears the cart as part of placing the order; mirror it locally.
     this.cartService.cart.set([]);
     this.snackbar.success('Order placed successfully!');
     this.router.navigate(['/cart/order-success', orderId]);

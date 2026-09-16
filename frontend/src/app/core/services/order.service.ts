@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { EMPTY, map, Observable } from 'rxjs';
 
 import { ApiService } from './api.service';
 import { Order, OrderAddress, OrderItem } from '../../shared/models/order.model';
@@ -23,9 +23,41 @@ export interface PlaceOrderResult {
   razorpay: RazorpayHandoff | null;
 }
 
+export interface PaymentConfig {
+  razorpay: { configured: boolean; keyId: string };
+}
+
+export interface OrderEvent {
+  order: Order;
+  visible: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private api = inject(ApiService);
+
+  getPaymentConfig(): Observable<PaymentConfig> {
+    return this.api.get<PaymentConfig>('/payments/config');
+  }
+
+  streamOrders(): Observable<OrderEvent> {
+    if (!this.api.isBrowser) return EMPTY;
+
+    return new Observable<OrderEvent>((subscriber) => {
+      const source = new EventSource(this.api.absoluteUrl('/orders/stream'), {
+        withCredentials: true,
+      });
+
+      source.addEventListener('order', (event) => {
+        try {
+          subscriber.next(JSON.parse((event as MessageEvent).data));
+        } catch {
+        }
+      });
+
+      return () => source.close();
+    });
+  }
 
   getDiscountPrice(item: OrderItem): number {
     const discount = item.discount ?? 0;

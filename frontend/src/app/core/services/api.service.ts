@@ -38,6 +38,10 @@ export class ApiService {
     return `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
   }
 
+  absoluteUrl(path: string): string {
+    return this.url(path);
+  }
+
   private get options() {
     const cookie = this.isBrowser ? null : this.serverRequest?.headers.get('cookie');
 

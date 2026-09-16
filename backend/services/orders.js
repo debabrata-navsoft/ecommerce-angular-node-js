@@ -48,6 +48,18 @@ export async function createOrderFromCart(user, { address, shippingMethod, payme
   });
 }
 
+async function restoreCart(order, session) {
+  const ops = order.items.map((item) => ({
+    updateOne: {
+      filter: { userId: order.userId, productId: item.productId },
+      update: { $setOnInsert: { quantity: item.quantity } },
+      upsert: true,
+    },
+  }));
+
+  if (ops.length > 0) await CartItem.bulkWrite(ops, session ? { session } : {});
+}
+
 export async function abandonOrder(order, { reason = 'failed' } = {}) {
   if (order.paymentStatus === 'paid' || order.paymentStatus === 'confirmed') {
     throw ApiError.badRequest('This order is already paid');
@@ -58,6 +70,7 @@ export async function abandonOrder(order, { reason = 'failed' } = {}) {
     const options = session ? { session } : {};
 
     await releaseStock(order.items, session);
+    await restoreCart(order, session);
 
     order.status = 'cancelled';
     order.paymentStatus = reason === 'cancelled' ? 'pending' : 'failed';
