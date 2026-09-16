@@ -1,94 +1,131 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
-import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
 
 import { UserService } from '../../../core/services/user.service';
-import { LoaderService } from '../../../core/services/loader.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 import { User } from '../../../shared/models/user.model';
-import { Loader } from '../../../shared/components/loader/loader';
+import { DataTable, TableCellDef, TableColumn } from '../../../shared/components/data-table/data-table';
+
+type RoleFilter = 'all' | 'user' | 'admin';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIcon, MatPaginatorModule, Loader],
+  imports: [RouterLink, MatIcon, DataTable, TableCellDef],
   templateUrl: './user-list.html',
   styleUrl: './user-list.css',
 })
 export class UserList implements OnInit {
   private userService = inject(UserService);
-  private loaderService = inject(LoaderService);
+  private snackbar = inject(SnackbarService);
   private destroyRef = inject(DestroyRef);
 
-  isLoading = this.loaderService.isLoading;
+  /** Local rather than the global loader, so the table can render its own skeleton. */
+  readonly loading = signal(true);
+  readonly users = signal<User[]>([]);
+  readonly roleFilter = signal<RoleFilter>('all');
 
-  users = signal<User[]>([]);
-  sortDirection = signal<'asc' | 'desc'>('desc');
-  // sortDirection = signal<'asc' | 'desc'>('asc');
-  pageSize = signal(10);
-  pageIndex = signal(0);
+  readonly columns: TableColumn<User>[] = [
+    {
+      key: 'index',
+      header: '#',
+      type: 'index',
+      width: '62px',
+      searchable: false,
+      sortable: true,
+      value: (user) => (user.createdAt ? new Date(user.createdAt).getTime() : 0),
+    },
+    {
+      key: 'customer',
+      header: 'Customer',
+      type: 'custom',
+      sortable: true,
+      value: (user) => `${user.firstName ?? ''} ${user.lastName ?? ''} ${user.email ?? ''}`.trim(),
+    },
+    {
+      key: 'phoneNumber',
+      header: 'Phone',
+      type: 'custom',
+      hideBelow: 'md',
+      value: (user) => user.phoneNumber?.[0] ?? '',
+    },
+    { key: 'role', header: 'Role', type: 'custom', width: '130px' },
+    {
+      key: 'createdAt',
+      header: 'Joined',
+      type: 'date',
+      format: 'dd MMM y',
+      width: '140px',
+      hideBelow: 'sm',
+      sortable: true,
+    },
+    {
+      key: 'actions',
+      header: '',
+      type: 'custom',
+      width: '96px',
+      align: 'right',
+      searchable: false,
+    },
+  ];
+
+  readonly visibleUsers = computed(() => {
+    const role = this.roleFilter();
+    if (role === 'all') return this.users();
+    return this.users().filter((user) => (user.role ?? 'user') === role);
+  });
+
+  readonly adminCount = computed(() => this.users().filter((u) => u.role === 'admin').length);
 
   ngOnInit() {
-    this.loaderService.show();
-
     const sub = this.userService.getUsers().subscribe({
       next: (res) => {
-        const data = (res || []).map((u: any) => ({
-          ...u,
-          createdAt: u.createdAt?.toDate ? u.createdAt.toDate() : u.createdAt,
-        }));
-
-        this.users.set(data);
-        this.loaderService.hide();
+        this.users.set(res ?? []);
+        this.loading.set(false);
       },
-
       error: (err) => {
-        console.error(err);
-        this.loaderService.hide();
+        console.error('Users load error:', err);
+        this.users.set([]);
+        this.loading.set(false);
       },
     });
 
-    this.destroyRef.onDestroy(() => {
-      sub.unsubscribe();
-    });
+    this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
-  toggleSort() {
-    this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
-    this.pageIndex.set(0);
+  setRoleFilter(value: string) {
+    this.roleFilter.set(value as RoleFilter);
   }
 
-  sortedUsers = computed(() => {
-    const dir = this.sortDirection();
-
-    return [...this.users()].sort((a: any, b: any) => {
-      const aVal = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const bVal = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-
-      return dir === 'asc' ? aVal - bVal : bVal - aVal;
-    });
-  });
-
-  paginatedUsers = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    const end = start + this.pageSize();
-
-    return this.sortedUsers().slice(start, end);
-  });
-
-  totalItems = computed(() => this.users().length);
-
-  onPageChange(event: PageEvent) {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
+  fullName(user: User): string {
+    const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
+    return name || 'Unnamed customer';
   }
 
-  deleteUser(id: string) {
-    if (!confirm('Delete this user?')) return;
+  initials(user: User): string {
+    const source = this.fullName(user) === 'Unnamed customer' ? user.email : this.fullName(user);
+    return (source ?? '?')
+      .split(/[\s@._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('');
+  }
 
-    this.userService.deleteUser(id).subscribe(() => {
-      this.users.update((users) => users.filter((u) => u.uid !== id));
+  deleteUser(user: User) {
+    if (!user.uid) return;
+    if (!confirm(`Delete ${this.fullName(user)}? This cannot be undone.`)) return;
+
+    this.userService.deleteUser(user.uid).subscribe({
+      next: () => {
+        this.users.update((users) => users.filter((u) => u.uid !== user.uid));
+        this.snackbar.success('Customer deleted');
+      },
+      error: (err) => {
+        console.error('Delete failed', err);
+        this.snackbar.error('Could not delete this customer');
+      },
     });
   }
 }

@@ -1,6 +1,89 @@
-<header class="admin-header">
-  <div class="admin-actions">
-    <span>Hello, {{ adminName }}</span>
-    <button (click)="logout()">Logout</button>
+<header class="hdr">
+  <div class="hdr__left">
+    <button
+      type="button"
+      class="hdr__toggle hdr__toggle--drawer"
+      aria-label="Open navigation"
+      (click)="toggleDrawer.emit()"
+    >
+      <mat-icon class="material-icons-outlined">menu</mat-icon>
+    </button>
+
+    <button
+      type="button"
+      class="hdr__toggle hdr__toggle--collapse"
+      [attr.aria-label]="collapsed() ? 'Expand navigation' : 'Collapse navigation'"
+      (click)="toggleCollapse.emit()"
+    >
+      <mat-icon class="material-icons-outlined">
+        {{ collapsed() ? 'menu_open' : 'menu' }}
+      </mat-icon>
+    </button>
+
+    <div class="hdr__titles">
+      <h1 class="hdr__title">{{ pageTitle() }}</h1>
+      @if (pageSubtitle()) {
+        <p class="hdr__subtitle">{{ pageSubtitle() }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="hdr__right">
+    <a class="hdr__store" routerLink="/" target="_blank" rel="noopener">
+      <mat-icon class="material-icons-outlined">open_in_new</mat-icon>
+      <span>Storefront</span>
+    </a>
+
+    <div class="hdr__account">
+      <button
+        type="button"
+        class="hdr__account-trigger"
+        [class.hdr__account-trigger--open]="menuOpen()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-haspopup="menu"
+        (click)="onMenuTrigger($event)"
+      >
+        <span class="adm-avatar">
+          @if (admin()?.avatarUrl) {
+            <img [src]="admin()?.avatarUrl" alt="" />
+          } @else {
+            {{ initials() }}
+          }
+        </span>
+
+        <span class="hdr__account-text">
+          <strong>{{ adminName() }}</strong>
+          <small>{{ admin()?.role || 'admin' }}</small>
+        </span>
+
+        <mat-icon class="material-icons-outlined hdr__chevron">expand_more</mat-icon>
+      </button>
+
+      @if (menuOpen()) {
+        <div class="hdr__menu" role="menu">
+          <div class="hdr__menu-head">
+            <strong>{{ adminName() }}</strong>
+            <span>{{ admin()?.email }}</span>
+          </div>
+
+          <a class="hdr__menu-item" role="menuitem" routerLink="/admin/users" (click)="closeMenu()">
+            <mat-icon class="material-icons-outlined">group</mat-icon>
+            Customers
+          </a>
+
+          <a class="hdr__menu-item" role="menuitem" routerLink="/admin/orders" (click)="closeMenu()">
+            <mat-icon class="material-icons-outlined">receipt_long</mat-icon>
+            Orders
+          </a>
+
+          <hr class="adm-divider" />
+
+          <button type="button" class="hdr__menu-item hdr__menu-item--danger" role="menuitem" (click)="logout()">
+            <mat-icon class="material-icons-outlined">logout</mat-icon>
+            Log out
+          </button>
+        </div>
+      }
+    </div>
   </div>
 </header>

@@ -1,0 +1,470 @@
+/**
+ * Admin design system — global on purpose.
+ *
+ * Component styles are encapsulated, so anything every admin screen needs (tokens, page
+ * chrome, buttons, badges, form fields) lives here instead of being copied into a dozen
+ * component stylesheets. Everything is namespaced `adm-` so it cannot leak into the
+ * customer area, which keeps its own look.
+ */
+
+:root {
+  /* surfaces */
+  --adm-bg: #f5f6fa;
+  --adm-surface: #ffffff;
+  --adm-surface-alt: #fafbfc;
+  --adm-border: #e8eaf0;
+  --adm-border-strong: #d6dae4;
+
+  /* text */
+  --adm-text: #101828;
+  --adm-text-soft: #475467;
+  --adm-muted: #667085;
+  --adm-faint: #98a2b3;
+
+  /* accents */
+  --adm-primary: #4f46e5;
+  --adm-primary-hover: #4338ca;
+  --adm-primary-soft: #eef2ff;
+  --adm-success: #12805c;
+  --adm-success-soft: #e7f6ef;
+  --adm-info: #1570cd;
+  --adm-info-soft: #e8f1fd;
+  --adm-warn: #b54708;
+  --adm-warn-soft: #fdf3e6;
+  --adm-danger: #d92d20;
+  --adm-danger-soft: #fdecea;
+
+  /* sidebar */
+  --adm-nav-bg: #0f1729;
+  --adm-nav-bg-soft: #1a2439;
+  --adm-nav-text: #93a0b8;
+  --adm-nav-text-active: #ffffff;
+
+  /* shape */
+  --adm-radius-sm: 8px;
+  --adm-radius: 12px;
+  --adm-radius-lg: 16px;
+  --adm-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --adm-shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --adm-shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
+
+  /* metrics */
+  --adm-sidebar-w: 266px;
+  --adm-sidebar-w-collapsed: 78px;
+  --adm-header-h: 66px;
+  --adm-gutter: 26px;
+}
+
+/* ---------------------------------------------------------------- page shell */
+
+.adm-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: var(--adm-gutter);
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.adm-page__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.adm-page__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+  color: var(--adm-text);
+}
+
+.adm-page__sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--adm-muted);
+}
+
+.adm-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------- cards */
+
+.adm-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow-sm);
+  overflow: hidden;
+}
+
+.adm-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.adm-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 620;
+  color: var(--adm-text);
+}
+
+.adm-card__title mat-icon {
+  font-size: 19px;
+  width: 19px;
+  height: 19px;
+  color: var(--adm-muted);
+}
+
+.adm-card__body {
+  padding: 20px;
+}
+
+.adm-card__body--flush {
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------- buttons */
+
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 15px;
+  border: 1px solid transparent;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-surface);
+  color: var(--adm-text-soft);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 560;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.adm-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.adm-btn:focus-visible {
+  outline: 2px solid var(--adm-primary);
+  outline-offset: 2px;
+}
+
+.adm-btn:disabled,
+.adm-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.adm-btn--primary {
+  background: var(--adm-primary);
+  border-color: var(--adm-primary);
+  color: #fff;
+  box-shadow: var(--adm-shadow-sm);
+}
+
+.adm-btn--primary:hover:not(:disabled) {
+  background: var(--adm-primary-hover);
+  border-color: var(--adm-primary-hover);
+}
+
+.adm-btn--outline {
+  border-color: var(--adm-border-strong);
+  color: var(--adm-text-soft);
+}
+
+.adm-btn--outline:hover:not(:disabled) {
+  background: var(--adm-surface-alt);
+  border-color: var(--adm-faint);
+}
+
+.adm-btn--subtle {
+  background: var(--adm-primary-soft);
+  color: var(--adm-primary);
+}
+
+.adm-btn--subtle:hover:not(:disabled) {
+  background: #e3e8ff;
+}
+
+.adm-btn--danger {
+  background: var(--adm-danger-soft);
+  color: var(--adm-danger);
+}
+
+.adm-btn--danger:hover:not(:disabled) {
+  background: #fbdcd8;
+}
+
+.adm-btn--sm {
+  height: 32px;
+  padding: 0 11px;
+  font-size: 12.5px;
+}
+
+.adm-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-surface);
+  color: var(--adm-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.adm-icon-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.adm-icon-btn:hover {
+  background: var(--adm-primary-soft);
+  border-color: #c7d2fe;
+  color: var(--adm-primary);
+}
+
+.adm-icon-btn--danger:hover {
+  background: var(--adm-danger-soft);
+  border-color: #f6c7c1;
+  color: var(--adm-danger);
+}
+
+/* ---------------------------------------------------------------- badges */
+
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: var(--adm-text-soft);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.adm-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.adm-badge--plain::before {
+  display: none;
+}
+
+.adm-badge--success {
+  background: var(--adm-success-soft);
+  color: var(--adm-success);
+}
+
+.adm-badge--info {
+  background: var(--adm-info-soft);
+  color: var(--adm-info);
+}
+
+.adm-badge--warn {
+  background: var(--adm-warn-soft);
+  color: var(--adm-warn);
+}
+
+.adm-badge--danger {
+  background: var(--adm-danger-soft);
+  color: var(--adm-danger);
+}
+
+.adm-badge--primary {
+  background: var(--adm-primary-soft);
+  color: var(--adm-primary);
+}
+
+/* ---------------------------------------------------------------- forms */
+
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--adm-text-soft);
+}
+
+.adm-label span {
+  color: var(--adm-danger);
+}
+
+.adm-input,
+.adm-select,
+.adm-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--adm-border-strong);
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-surface);
+  color: var(--adm-text);
+  font: inherit;
+  font-size: 13.5px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.adm-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.adm-select {
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+
+.adm-input::placeholder,
+.adm-textarea::placeholder {
+  color: var(--adm-faint);
+}
+
+.adm-input:focus,
+.adm-select:focus,
+.adm-textarea:focus {
+  outline: none;
+  border-color: var(--adm-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.adm-input--error,
+.adm-textarea--error {
+  border-color: var(--adm-danger);
+}
+
+.adm-error {
+  font-size: 12px;
+  color: var(--adm-danger);
+}
+
+.adm-hint {
+  font-size: 12px;
+  color: var(--adm-muted);
+}
+
+/* ---------------------------------------------------------------- bits */
+
+.adm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 44px 20px;
+  color: var(--adm-muted);
+  font-size: 13.5px;
+  text-align: center;
+}
+
+.adm-empty mat-icon {
+  font-size: 34px;
+  width: 34px;
+  height: 34px;
+  color: var(--adm-faint);
+}
+
+.adm-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--adm-primary-soft);
+  color: var(--adm-primary);
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+}
+
+.adm-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.adm-mono {
+  font-family: 'SFMono-Regular', ui-monospace, 'Menlo', 'Consolas', monospace;
+  font-size: 12.5px;
+}
+
+.adm-kv {
+  display: grid;
+  grid-template-columns: minmax(120px, 160px) 1fr;
+  gap: 10px 16px;
+  margin: 0;
+  font-size: 13.5px;
+}
+
+.adm-kv dt {
+  color: var(--adm-muted);
+}
+
+.adm-kv dd {
+  margin: 0;
+  color: var(--adm-text);
+  font-weight: 550;
+  word-break: break-word;
+}
+
+.adm-divider {
+  height: 1px;
+  border: 0;
+  margin: 0;
+  background: var(--adm-border);
+}

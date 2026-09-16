@@ -1,19 +1,40 @@
-<div class="sidebar">
-  <!-- Logo Section -->
-  <div class="logo">
-    <h2>SnapCart Admin</h2>
-  </div>
+<div class="nav">
+  <a class="nav__brand" routerLink="/admin/dashboard" (click)="navigated.emit()">
+    <span class="nav__mark">S</span>
+    <span class="nav__brand-text">
+      <strong>SnapCart</strong>
+      <small>Admin console</small>
+    </span>
+  </a>
 
-  <!-- Menu Section -->
-  <ul class="menu">
-    <li routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-      Dashboard
-    </li>
+  <nav class="nav__scroll">
+    @for (group of groups; track group.label) {
+      <div class="nav__group">
+        <p class="nav__group-label">{{ group.label }}</p>
 
-    <li routerLink="/admin/users" routerLinkActive="active">Users</li>
+        <ul class="nav__list">
+          @for (item of group.items; track item.route) {
+            <li>
+              <a
+                class="nav__link"
+                [routerLink]="item.route"
+                routerLinkActive="nav__link--active"
+                [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                [attr.title]="collapsed() ? item.label : null"
+                (click)="navigated.emit()"
+              >
+                <mat-icon class="material-icons-outlined nav__icon">{{ item.icon }}</mat-icon>
+                <span class="nav__label">{{ item.label }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </nav>
 
-    <li routerLink="/admin/products" routerLinkActive="active">Products</li>
-
-    <li routerLink="/admin/orders" routerLinkActive="active">Orders</li>
-  </ul>
+  <a class="nav__store" routerLink="/" (click)="navigated.emit()">
+    <mat-icon class="material-icons-outlined nav__icon">storefront</mat-icon>
+    <span class="nav__label">View storefront</span>
+  </a>
 </div>

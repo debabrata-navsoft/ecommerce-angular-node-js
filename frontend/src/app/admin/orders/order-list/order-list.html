@@ -1,102 +1,85 @@
-@if (isLoading()) {
-  <app-loader />
-} @else {
-  <div class="orders">
-    <h2>All Orders</h2>
+<div class="adm-page">
+  <div class="adm-page__head">
+    <div>
+      <h1 class="adm-page__title">Orders</h1>
+      <p class="adm-page__sub">
+        {{ orders().length }} orders · {{ pendingCount() }} awaiting fulfilment
+      </p>
+    </div>
 
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th (click)="toggleSort()">
-              <div class="id-arrow">
-                ID
-                <mat-icon class="material-icons-outlined">
-                  {{ sortDirection() === 'desc' ? 'arrow_upward' : 'arrow_downward' }}
-                </mat-icon>
-              </div>
-            </th>
-            <th>Order ID</th>
-            <th>User ID</th>
-            <th>Total</th>
-            <th>Date</th>
-            <th>Action</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          @for (order of paginatedOrders(); track order.orderId; let i = $index) {
-            <tr>
-              <td>
-                {{
-                  sortDirection() === 'asc'
-                    ? pageIndex() * pageSize() + i + 1
-                    : totalItems() - (pageIndex() * pageSize() + i)
-                }}
-              </td>
-              <!-- <td>{{ i + 1 }}</td> -->
-              <td>{{ order.orderId }}</td>
-              <td>{{ order.userEmail }}</td>
-              <td>₹{{ order.total | number: '1.0-0' }}.00</td>
-
-              <td>{{ order.createdAt | date: 'medium' }}</td>
-
-              <td>
-                <!-- <button [routerLink]="['/admin/orders/:id']">View</button> -->
-                <button
-                  [routerLink]="['/admin/orders', order.orderId]"
-                  [queryParams]="{ userId: order.userId }"
-                >
-                  View
-                </button>
-              </td>
-
-              <!-- <td>
-              <select (change)="changeStatus(order, $event)">
-                <option value="pending" [selected]="order.status === 'pending'">Pending</option>
-                <option value="confirmed" [selected]="order.status === 'confirmed'">
-                  Confirmed
-                </option>
-                <option value="shipped" [selected]="order.status === 'shipped'">Shipped</option>
-                <option value="delivered" [selected]="order.status === 'delivered'">
-                  Delivered
-                </option>
-              </select>
-            </td> -->
-
-              <td class="status-section">
-                <select (change)="changeStatus(order, $event)">
-                  <option value="pending" [selected]="order.status === 'pending'">Pending</option>
-
-                  <option value="shipped" [selected]="order.status === 'shipped'">Shipped</option>
-                  <option value="delivered" [selected]="order.status === 'delivered'">
-                    Delivered
-                  </option>
-                  <option value="cancelled" [selected]="order.status === 'cancelled'">
-                    Cancelled
-                  </option>
-                </select>
-
-                <span class="status {{ order.status | lowercase }}">
-                  {{ order.status }}
-                </span>
-              </td>
-              <!-- <td class="status {{ order.status | lowercase }}">
-              {{ order.status }}
-            </td> -->
-            </tr>
-          }
-        </tbody>
-      </table>
-
-      <mat-paginator
-        [length]="totalItems()"
-        [pageSize]="pageSize()"
-        [pageSizeOptions]="[5, 10, 20]"
-        (page)="onPageChange($event)"
-      >
-      </mat-paginator>
+    <div class="adm-page__actions">
+      <div class="revenue">
+        <span class="revenue__label">Booked revenue</span>
+        <strong class="revenue__value">₹{{ revenue() | number: '1.0-0' }}</strong>
+      </div>
     </div>
   </div>
-}
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="visibleOrders()"
+    [loading]="loading()"
+    title="All orders"
+    searchPlaceholder="Search order id or customer…"
+    emptyMessage="No orders in this view"
+    emptyIcon="receipt_long"
+    sortKey="index"
+    sortDirection="desc"
+    [pageSize]="10"
+  >
+    <label tableFilters class="filter">
+      <span>Status</span>
+      <select
+        class="adm-select"
+        [value]="statusFilter()"
+        (change)="setStatusFilter($any($event.target).value)"
+      >
+        <option value="all">All</option>
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ status | titlecase }}</option>
+        }
+      </select>
+    </label>
+
+    <ng-template appTableCell="orderId" let-order>
+      <a
+        class="order-id"
+        [routerLink]="['/admin/orders', order.orderId]"
+        [queryParams]="{ userId: order.userId }"
+      >
+        <strong class="adm-mono">#{{ order.orderId | slice: 0 : 10 }}</strong>
+        <small>{{ order.items?.length || 0 }} item(s) · {{ order.paymentMethod || 'n/a' }}</small>
+      </a>
+    </ng-template>
+
+    <ng-template appTableCell="paymentStatus" let-order>
+      <span class="adm-badge" [class]="'adm-badge ' + paymentTone(order)">
+        {{ order.paymentStatus || 'pending' }}
+      </span>
+    </ng-template>
+
+    <ng-template appTableCell="status" let-order>
+      <select
+        class="status-select"
+        [class]="'status-select ' + statusTone(order.status)"
+        [value]="order.status"
+        (change)="changeStatus(order, $event)"
+      >
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ status | titlecase }}</option>
+        }
+      </select>
+    </ng-template>
+
+    <ng-template appTableCell="actions" let-order>
+      <a
+        class="adm-icon-btn"
+        title="Open order"
+        [routerLink]="['/admin/orders', order.orderId]"
+        [queryParams]="{ userId: order.userId }"
+      >
+        <mat-icon class="material-icons-outlined">open_in_new</mat-icon>
+      </a>
+    </ng-template>
+  </app-data-table>
+</div>

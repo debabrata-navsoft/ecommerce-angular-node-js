@@ -1,120 +1,149 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe, SlicePipe, TitleCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIcon } from '@angular/material/icon';
 
 import { mergeOrderEvent, OrderService } from '../../../core/services/order.service';
-import { LoaderService } from '../../../core/services/loader.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 import { Order } from '../../../shared/models/order.model';
-import { Loader } from '../../../shared/components/loader/loader';
+import { DataTable, TableCellDef, TableColumn } from '../../../shared/components/data-table/data-table';
+
+type StatusFilter = 'all' | Order['status'];
 
 @Component({
   selector: 'app-order-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIcon, MatPaginatorModule, Loader],
+  imports: [RouterLink, MatIcon, DecimalPipe, SlicePipe, TitleCasePipe, DataTable, TableCellDef],
   templateUrl: './order-list.html',
   styleUrl: './order-list.css',
 })
 export class OrderList implements OnInit {
   private orderService = inject(OrderService);
-  private loaderService = inject(LoaderService);
+  private snackbar = inject(SnackbarService);
   private destroyRef = inject(DestroyRef);
 
-  isLoading = this.loaderService.isLoading;
+  readonly loading = signal(true);
+  readonly orders = signal<Order[]>([]);
+  readonly statusFilter = signal<StatusFilter>('all');
 
-  sortDirection = signal<'asc' | 'desc'>('desc');
-  // sortDirection = signal<'asc' | 'desc'>('asc');
-  orders = signal<Order[]>([]);
-  pageIndex = signal(0);
-  pageSize = signal(10);
+  readonly statuses: Order['status'][] = ['pending', 'shipped', 'delivered', 'cancelled'];
+
+  readonly columns: TableColumn<Order>[] = [
+    {
+      key: 'index',
+      header: '#',
+      type: 'index',
+      width: '62px',
+      searchable: false,
+      sortable: true,
+      value: (order) => order.createdAt ?? 0,
+    },
+    { key: 'orderId', header: 'Order', type: 'custom', sortable: true },
+    { key: 'userEmail', header: 'Customer', type: 'text', sortable: true },
+    { key: 'total', header: 'Amount', type: 'currency', width: '120px', sortable: true },
+    { key: 'paymentStatus', header: 'Payment', type: 'custom', width: '150px', hideBelow: 'md' },
+    {
+      key: 'createdAt',
+      header: 'Placed',
+      type: 'date',
+      format: 'dd MMM y, h:mm a',
+      width: '170px',
+      hideBelow: 'sm',
+      sortable: true,
+    },
+    { key: 'status', header: 'Fulfilment', type: 'custom', width: '170px' },
+    { key: 'actions', header: '', type: 'custom', width: '64px', align: 'right', searchable: false },
+  ];
+
+  readonly visibleOrders = computed(() => {
+    const status = this.statusFilter();
+    if (status === 'all') return this.orders();
+    return this.orders().filter((order) => order.status === status);
+  });
+
+  readonly pendingCount = computed(() => this.orders().filter((o) => o.status === 'pending').length);
+
+  readonly revenue = computed(() =>
+    this.orders()
+      .filter((order) => order.status !== 'cancelled')
+      .reduce((sum, order) => sum + (order.total ?? 0), 0),
+  );
 
   ngOnInit() {
-    this.loaderService.show();
-
     const orderSub = this.orderService.getAllOrders().subscribe({
       next: (res) => {
-        this.orders.set(res || []);
-        // const sorted = (res || []).sort((a: any, b: any) => b.createdAt - a.createdAt);
-        // this.orders.set(sorted);
-        this.loaderService.hide();
+        this.orders.set(res ?? []);
+        this.loading.set(false);
       },
-
       error: (err) => {
-        console.log(err);
-        this.loaderService.hide();
+        console.error('Orders load error:', err);
+        this.orders.set([]);
+        this.loading.set(false);
       },
     });
 
+    // Admin status changes and customer cancellations land here without a refresh.
     const streamSub = this.orderService.streamOrders().subscribe({
       next: (event) => this.orders.update((list) => mergeOrderEvent(list, event)),
-      error: (err) => console.log(err),
+      error: (err) => console.error('Order stream error:', err),
     });
 
     this.destroyRef.onDestroy(() => {
       orderSub.unsubscribe();
       streamSub.unsubscribe();
     });
+  }
 
-    // this.orderService.getAllOrders().subscribe((res) => {
-    //   const sorted = (res || []).sort((a: any, b: any) => b.createdAt - a.createdAt);
-
-    //   this.orders.set(sorted);
-    //   // this.orders.set(res || []);
-    // });
+  setStatusFilter(value: string) {
+    this.statusFilter.set(value as StatusFilter);
   }
 
   changeStatus(order: Order, event: Event) {
-    const status = (event.target as HTMLSelectElement).value as Order['status'];
+    const select = event.target as HTMLSelectElement;
+    const status = select.value as Order['status'];
+    const previous = order.status;
 
-    const statusSub = this.orderService.updateOrderStatus(order.orderId!, status).subscribe({
-      next: () => {
-        const updated = this.orders().map((o) =>
-          o.orderId === order.orderId ? { ...o, status } : o,
-        );
-        this.orders.set(updated);
+    this.patchStatus(order.orderId, status);
+
+    this.orderService.updateOrderStatus(order.orderId!, status).subscribe({
+      next: () => this.snackbar.success(`Order marked ${status}`),
+      error: (err) => {
+        console.error('Status update failed', err);
+        this.patchStatus(order.orderId, previous);
+        select.value = previous;
+        this.snackbar.error('Could not update the order status');
       },
-      error: (err) => console.log(err),
-    });
-
-    this.destroyRef.onDestroy(() => {
-      statusSub.unsubscribe();
     });
   }
 
-  sortedOrders = computed(() => {
-    const dir = this.sortDirection();
-
-    return [...this.orders()].sort((a, b) => {
-      const aVal = a.createdAt ?? 0;
-      const bVal = b.createdAt ?? 0;
-      return dir === 'asc' ? aVal - bVal : bVal - aVal;
-    });
-
-    // return [...this.orders()].sort((a: any, b: any) => {
-    //   const aVal = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    //   const bVal = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-
-    //   return dir === 'asc' ? aVal - bVal : bVal - aVal;
-    // });
-  });
-
-  totalItems = computed(() => this.orders().length);
-
-  paginatedOrders = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    const end = start + this.pageSize();
-
-    return this.sortedOrders().slice(start, end);
-  });
-
-  onPageChange(event: PageEvent) {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
+  private patchStatus(orderId: string | undefined, status: Order['status']) {
+    this.orders.update((list) =>
+      list.map((item) => (item.orderId === orderId ? { ...item, status } : item)),
+    );
   }
 
-  toggleSort() {
-    this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
-    this.pageIndex.set(0);
+  paymentTone(order: Order): string {
+    switch (order.paymentStatus) {
+      case 'paid':
+      case 'confirmed':
+        return 'adm-badge--success';
+      case 'failed':
+        return 'adm-badge--danger';
+      default:
+        return 'adm-badge--warn';
+    }
+  }
+
+  statusTone(status: Order['status']): string {
+    switch (status) {
+      case 'delivered':
+        return 'status--delivered';
+      case 'shipped':
+        return 'status--shipped';
+      case 'cancelled':
+        return 'status--cancelled';
+      default:
+        return 'status--pending';
+    }
   }
 }

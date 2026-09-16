@@ -1,78 +1,78 @@
-@if (isLoading()) {
-  <app-loader />
-} @else {
-  <div class="user-list">
-    <h2>Customers</h2>
-
-    <table>
-      <thead>
-        <tr>
-          <th (click)="toggleSort()" style="cursor: pointer">
-            <div class="id-arrow">
-              ID
-              <mat-icon class="material-icons-outlined">
-                {{ sortDirection() === 'desc' ? 'arrow_upward' : 'arrow_downward' }}
-              </mat-icon>
-            </div>
-          </th>
-
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Joined</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @for (user of paginatedUsers(); track user.uid; let i = $index) {
-          <tr>
-            <td>
-              {{
-                sortDirection() === 'asc'
-                  ? pageIndex() * pageSize() + i + 1
-                  : totalItems() - (pageIndex() * pageSize() + i)
-              }}
-            </td>
-            <!-- <td>{{ pageIndex * pageSize + i + 1 }}</td> -->
-
-            @if (user) {
-              <td>{{ user.firstName }} {{ user.lastName }}</td>
-            }
-
-            <!-- <td>{{ user.firstName }} {{ user.lastName }}</td> -->
-
-            <td>{{ user.email }}</td>
-
-            <td>{{ user.role || 'customer' }}</td>
-
-            <td>
-              {{ user.createdAt ? (user.createdAt | date: 'medium') : '—' }}
-            </td>
-
-            <td class="actions">
-              <button [routerLink]="['/admin/users', user.uid!]">View</button>
-              <button class="delete" (click)="deleteUser(user.uid!)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </tr>
-        }
-
-        @if (paginatedUsers().length === 0) {
-          <tr>
-            <td colspan="6">No users found</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-
-    <mat-paginator
-      [length]="totalItems()"
-      [pageSize]="pageSize()"
-      [pageSizeOptions]="[5, 10, 20]"
-      (page)="onPageChange($event)"
-    >
-    </mat-paginator>
+<div class="adm-page">
+  <div class="adm-page__head">
+    <div>
+      <h1 class="adm-page__title">Customers</h1>
+      <p class="adm-page__sub">
+        {{ users().length }} accounts · {{ adminCount() }} with admin access
+      </p>
+    </div>
   </div>
-}
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="visibleUsers()"
+    [loading]="loading()"
+    title="All customers"
+    searchPlaceholder="Search name, email, phone…"
+    emptyMessage="No customers yet"
+    emptyIcon="group"
+    sortKey="index"
+    sortDirection="desc"
+    [pageSize]="10"
+  >
+    <label tableFilters class="filter">
+      <span>Role</span>
+      <select
+        class="adm-select"
+        [value]="roleFilter()"
+        (change)="setRoleFilter($any($event.target).value)"
+      >
+        <option value="all">All</option>
+        <option value="user">Customers</option>
+        <option value="admin">Admins</option>
+      </select>
+    </label>
+
+    <ng-template appTableCell="customer" let-user>
+      <a class="customer" [routerLink]="['/admin/users', user.uid]">
+        <span class="adm-avatar">
+          @if (user.avatarUrl) {
+            <img [src]="user.avatarUrl" alt="" />
+          } @else {
+            {{ initials(user) }}
+          }
+        </span>
+        <span class="customer__text">
+          <strong>{{ fullName(user) }}</strong>
+          <small>{{ user.email }}</small>
+        </span>
+      </a>
+    </ng-template>
+
+    <ng-template appTableCell="phoneNumber" let-user>
+      {{ user.phoneNumber?.[0] || '—' }}
+    </ng-template>
+
+    <ng-template appTableCell="role" let-user>
+      <span class="adm-badge" [class.adm-badge--primary]="user.role === 'admin'">
+        {{ user.role === 'admin' ? 'Admin' : 'Customer' }}
+      </span>
+    </ng-template>
+
+    <ng-template appTableCell="actions" let-user>
+      <div class="row-actions">
+        <a class="adm-icon-btn" [routerLink]="['/admin/users', user.uid]" title="View customer">
+          <mat-icon class="material-icons-outlined">visibility</mat-icon>
+        </a>
+        <button
+          type="button"
+          class="adm-icon-btn adm-icon-btn--danger"
+          title="Delete customer"
+          (click)="deleteUser(user)"
+        >
+          <mat-icon class="material-icons-outlined">delete</mat-icon>
+        </button>
+      </div>
+    </ng-template>
+  </app-data-table>
+</div>

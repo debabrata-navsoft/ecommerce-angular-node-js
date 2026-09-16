@@ -1,0 +1,201 @@
+<section class="dt" [class.dt--dense]="dense()">
+  @if (showToolbar()) {
+    <header class="dt__toolbar">
+      <div class="dt__heading">
+        @if (title()) {
+          <h2 class="dt__title">
+            {{ title() }}
+            @if (showCount() && !loading()) {
+              <span class="dt__count">{{ total() }}</span>
+            }
+          </h2>
+        }
+        @if (subtitle()) {
+          <p class="dt__subtitle">{{ subtitle() }}</p>
+        }
+      </div>
+
+      <div class="dt__tools">
+        <ng-content select="[tableFilters]" />
+
+        @if (searchable()) {
+          <label class="dt__search">
+            <mat-icon class="material-icons-outlined">search</mat-icon>
+            <input
+              type="search"
+              class="dt__search-input"
+              autocomplete="off"
+              [attr.aria-label]="searchPlaceholder()"
+              [attr.placeholder]="searchPlaceholder()"
+              [value]="search()"
+              (input)="setSearch($any($event.target).value)"
+            />
+          </label>
+        }
+
+        <ng-content select="[tableActions]" />
+      </div>
+    </header>
+  }
+
+  <div class="dt__scroll">
+    <table class="dt__table">
+      <thead>
+        <tr>
+          @for (col of columns(); track col.key) {
+            <th
+              scope="col"
+              [class]="columnClass(col)"
+              [class.dt__th--sortable]="col.sortable"
+              [style.width]="col.width"
+              [attr.aria-sort]="ariaSort(col)"
+              [attr.tabindex]="col.sortable ? 0 : null"
+              (click)="onHeaderClick(col)"
+              (keydown.enter)="onHeaderClick(col)"
+              (keydown.space)="onHeaderClick(col)"
+            >
+              <span class="dt__th-inner">
+                {{ col.header }}
+                @if (col.sortable) {
+                  <mat-icon
+                    class="material-icons-outlined dt__sort"
+                    [class.dt__sort--on]="sort().key === col.key"
+                  >
+                    {{ sortIcon(col) }}
+                  </mat-icon>
+                }
+              </span>
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (loading()) {
+          @for (skeleton of skeletonRows; track skeleton) {
+            <tr class="dt__row">
+              @for (col of columns(); track col.key) {
+                <td [class]="columnClass(col)"><span class="dt__skeleton"></span></td>
+              }
+            </tr>
+          }
+        } @else {
+          @for (row of pagedRows(); track rowKey(row, $index); let i = $index) {
+            <tr
+              class="dt__row"
+              [class.dt__row--clickable]="clickableRows()"
+              (click)="onRowClick(row)"
+            >
+              @for (col of columns(); track col.key) {
+                <td [class]="columnClass(col)">
+                  @if (templateFor(col.key); as cellTemplate) {
+                    <ng-container
+                      [ngTemplateOutlet]="cellTemplate"
+                      [ngTemplateOutletContext]="{ $implicit: row, row: row, index: i }"
+                    />
+                  } @else {
+                    @switch (col.type) {
+                      @case ('index') {
+                        <span class="dt__index">{{ displayIndex(i) }}</span>
+                      }
+                      @case ('image') {
+                        @if (imageSrc(col, row)) {
+                          <img class="dt__thumb" [src]="imageSrc(col, row)" alt="" loading="lazy" />
+                        } @else {
+                          <span class="dt__thumb dt__thumb--empty">
+                            <mat-icon class="material-icons-outlined">image</mat-icon>
+                          </span>
+                        }
+                      }
+                      @case ('currency') {
+                        <span class="dt__amount">{{ display(col, row) }}</span>
+                      }
+                      @default {
+                        {{ display(col, row) }}
+                      }
+                    }
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="columns().length">
+                <div class="adm-empty">
+                  <mat-icon class="material-icons-outlined">{{ emptyIcon() }}</mat-icon>
+                  <span>{{ search() ? 'No results for “' + search() + '”' : emptyMessage() }}</span>
+                  @if (search()) {
+                    <button type="button" class="adm-btn adm-btn--sm adm-btn--subtle" (click)="setSearch('')">
+                      Clear search
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (paginated() && !loading() && total() > 0) {
+    <footer class="dt__footer">
+      <div class="dt__range">
+        <label class="dt__size">
+          <span>Rows</span>
+          <select
+            class="adm-select dt__size-select"
+            [value]="size()"
+            (change)="changeSize(+$any($event.target).value)"
+          >
+            @for (option of pageSizeOptions(); track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+
+        <span class="dt__range-text">{{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}</span>
+      </div>
+
+      @if (pageCount() > 1) {
+        <nav class="dt__pager" aria-label="Pagination">
+          <button
+            type="button"
+            class="dt__page-btn"
+            aria-label="Previous page"
+            [disabled]="pageIndex() === 0"
+            (click)="goTo(pageIndex() - 1)"
+          >
+            <mat-icon class="material-icons-outlined">chevron_left</mat-icon>
+          </button>
+
+          @for (page of pages(); track $index) {
+            @if (page === -1) {
+              <span class="dt__ellipsis">…</span>
+            } @else {
+              <button
+                type="button"
+                class="dt__page-btn"
+                [class.dt__page-btn--active]="page === pageIndex()"
+                [attr.aria-current]="page === pageIndex() ? 'page' : null"
+                (click)="goTo(page)"
+              >
+                {{ page + 1 }}
+              </button>
+            }
+          }
+
+          <button
+            type="button"
+            class="dt__page-btn"
+            aria-label="Next page"
+            [disabled]="pageIndex() >= pageCount() - 1"
+            (click)="goTo(pageIndex() + 1)"
+          >
+            <mat-icon class="material-icons-outlined">chevron_right</mat-icon>
+          </button>
+        </nav>
+      }
+    </footer>
+  }
+</section>
