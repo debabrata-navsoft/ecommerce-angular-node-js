@@ -1,24 +1,14 @@
-import {
-  Component,
-  inject,
-  input,
-  output,
-  signal,
-  effect,
-  computed,
-  DestroyRef,
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, computed, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 
 import { AddressUser, User } from '../../../../shared/models/user.model';
 import { UserService } from '../../../../core/services/user.service';
 import { SnackbarService } from '../../../../core/services/snackbar.service';
+import { AddressForm, emptyAddress } from '../../../../shared/components/address-form/address-form';
 
 @Component({
   selector: 'app-checkout-address',
   standalone: true,
-  imports: [FormsModule, MatIconModule],
+  imports: [AddressForm],
   templateUrl: './checkout-address.html',
   styleUrl: './checkout-address.css',
 })
@@ -38,16 +28,8 @@ export class CheckoutAddress {
   showAll = signal(false);
   showAddressPopup = signal(false);
 
-  newAddress = signal<AddressUser>({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    landmark: '',
-    city: '',
-    state: '',
-    pinCode: '',
-  });
+  /** Seed handed to AddressForm; the dialog owns the draft and its validation. */
+  newAddress = signal<AddressUser>(emptyAddress());
 
   constructor() {
     effect(() => {
@@ -62,8 +44,6 @@ export class CheckoutAddress {
       });
     });
   }
-
-  ngAfterViewInit() {}
 
   editAddress(addr: AddressUser, index: number) {
     this.newAddress.set({ ...addr });
@@ -91,47 +71,20 @@ export class CheckoutAddress {
     const u = this.userData();
 
     this.newAddress.set({
+      ...emptyAddress(),
       fullName: `${u?.firstName || ''} ${u?.lastName || ''}`.trim(),
       email: u?.email || '',
       phone: u?.phoneNumber?.[0] || '',
-      address: '',
-      landmark: '',
-      city: '',
-      state: '',
-      pinCode: '',
     });
+
     this.editingIndex.set(null);
     this.showAddressPopup.set(true);
   }
 
-  updateField(field: keyof AddressUser, value: string) {
-    this.newAddress.update((a) => ({ ...a, [field]: value }));
-  }
-
-  saveAddress() {
+  /** `clean` arrives already validated and trimmed by AddressForm. */
+  saveAddress(clean: AddressUser) {
     const u = this.userData();
     if (!u?.uid) return;
-
-    const base = this.newAddress();
-
-    if (
-      !base.fullName ||
-      !base.phone ||
-      !base.address ||
-      !base.city ||
-      !base.state ||
-      !base.pinCode
-    ) {
-      this.snackbar.error('Fill all required fields');
-      return;
-    }
-
-    const clean: AddressUser = {
-      ...base,
-      phone: String(base.phone ?? '').trim(),
-      pinCode: String(base.pinCode ?? '').trim(),
-      landmark: base.landmark?.trim() || '',
-    };
 
     // The server assigns the id and the ordering, so edits target an id rather than an
     // array index and the response replaces the local list.

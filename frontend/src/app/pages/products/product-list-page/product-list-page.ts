@@ -29,7 +29,7 @@ import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
 @Component({
   selector: 'app-product-list-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TruncatePipe, Highlight, Error, MatIcon, CategoryLabelPipe],
+  imports: [CommonModule, FormsModule, Error, MatIcon, CategoryLabelPipe],
   templateUrl: './product-list-page.html',
   styleUrl: './product-list-page.css',
 })

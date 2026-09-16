@@ -1,15 +1,14 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
 
 import { AddressUser, User } from '../../../shared/models/user.model';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { UserService } from '../../../core/services/user.service';
+import { AddressForm, emptyAddress } from '../../../shared/components/address-form/address-form';
 
 @Component({
   selector: 'app-address',
   standalone: true,
-  imports: [FormsModule, MatIconModule],
+  imports: [AddressForm],
   templateUrl: './address.html',
   styleUrl: './address.css',
 })
@@ -45,10 +44,6 @@ export class Address {
     });
   }
 
-  updateField(field: keyof AddressUser, value: string) {
-    this.newAddress.update((a) => ({ ...a, [field]: value }));
-  }
-
   openAddressPopup() {
     const currentUser = this.user();
     if (!currentUser) return;
@@ -73,24 +68,10 @@ export class Address {
     this.showAddressPopup.set(true);
   }
 
-  saveAddress() {
+  /** `clean` arrives already validated and trimmed by AddressForm. */
+  saveAddress(clean: AddressUser) {
     const uid = this.user()?.uid;
     if (!uid || this.saving()) return;
-
-    const clean = normalize(this.newAddress());
-
-    if (
-      !clean.fullName ||
-      !clean.email ||
-      !clean.phone ||
-      !clean.address ||
-      !clean.city ||
-      !clean.state ||
-      !clean.pinCode
-    ) {
-      this.snackBar.error('Please fill all required fields');
-      return;
-    }
 
     const editingId = this.editingId();
     const isEdit = editingId !== null;
@@ -138,28 +119,3 @@ export class Address {
   }
 }
 
-function emptyAddress(): AddressUser {
-  return {
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    landmark: '',
-    city: '',
-    state: '',
-    pinCode: '',
-  };
-}
-
-function normalize(addr: AddressUser): AddressUser {
-  return {
-    fullName: addr.fullName.trim(),
-    email: addr.email.trim(),
-    phone: String(addr.phone ?? '').trim(),
-    address: addr.address.trim(),
-    landmark: addr.landmark?.trim() || '',
-    city: addr.city.trim(),
-    state: addr.state.trim(),
-    pinCode: String(addr.pinCode ?? '').trim(),
-  };
-}

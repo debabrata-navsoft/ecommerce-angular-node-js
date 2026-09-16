@@ -1,0 +1,168 @@
+@if (open()) {
+  <div class="popup" (click)="close()">
+    <div
+      class="popup-box"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="af-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="popup-header">
+        <h3 id="af-title">{{ editing() ? 'Edit Address' : 'Add New Address' }}</h3>
+
+        <button type="button" aria-label="Close" (click)="close()">
+          <mat-icon class="material-icons-outlined">close</mat-icon>
+        </button>
+      </div>
+
+      <div class="form-row">
+        <div class="input-box">
+          <label for="af-fullName">Full Name <span class="req">*</span></label>
+          <input
+            id="af-fullName"
+            name="fullName"
+            autocomplete="name"
+            placeholder="Full Name"
+            [ngModel]="draft().fullName"
+            (ngModelChange)="updateField('fullName', $event)"
+            (blur)="markTouched('fullName')"
+            [class.invalid]="showError('fullName')"
+            [attr.aria-invalid]="showError('fullName')"
+          />
+          @if (errorFor('fullName'); as msg) {
+            <small class="field-error">{{ msg }}</small>
+          }
+        </div>
+
+        <div class="input-box">
+          <label for="af-phone">Phone no. <span class="req">*</span></label>
+          <input
+            id="af-phone"
+            name="phone"
+            type="tel"
+            autocomplete="tel"
+            placeholder="Phone"
+            [ngModel]="draft().phone"
+            (ngModelChange)="updateField('phone', $event)"
+            (blur)="markTouched('phone')"
+            [class.invalid]="showError('phone')"
+            [attr.aria-invalid]="showError('phone')"
+          />
+          @if (errorFor('phone'); as msg) {
+            <small class="field-error">{{ msg }}</small>
+          }
+        </div>
+      </div>
+
+      <div class="input-box">
+        <label for="af-email">Email <span class="req">*</span></label>
+        <input
+          id="af-email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          placeholder="Email"
+          [ngModel]="draft().email"
+          (ngModelChange)="updateField('email', $event)"
+          (blur)="markTouched('email')"
+          [class.invalid]="showError('email')"
+          [attr.aria-invalid]="showError('email')"
+        />
+        @if (errorFor('email'); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+
+        <label for="af-address">Address <span class="req">*</span></label>
+        <input
+          id="af-address"
+          name="address"
+          autocomplete="street-address"
+          placeholder="House no., street, area"
+          [ngModel]="draft().address"
+          (ngModelChange)="updateField('address', $event)"
+          (blur)="markTouched('address')"
+          [class.invalid]="showError('address')"
+          [attr.aria-invalid]="showError('address')"
+        />
+        @if (errorFor('address'); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+
+        <label for="af-landmark">Landmark <span class="optional">(optional)</span></label>
+        <input
+          id="af-landmark"
+          name="landmark"
+          autocomplete="off"
+          placeholder="Nearby landmark"
+          [ngModel]="draft().landmark"
+          (ngModelChange)="updateField('landmark', $event)"
+        />
+
+        <label for="af-city">City <span class="req">*</span></label>
+        <input
+          id="af-city"
+          name="city"
+          autocomplete="address-level2"
+          placeholder="City"
+          [ngModel]="draft().city"
+          (ngModelChange)="updateField('city', $event)"
+          (blur)="markTouched('city')"
+          [class.invalid]="showError('city')"
+          [attr.aria-invalid]="showError('city')"
+        />
+        @if (errorFor('city'); as msg) {
+          <small class="field-error">{{ msg }}</small>
+        }
+      </div>
+
+      <div class="form-row">
+        <div class="input-box">
+          <label for="af-state">State <span class="req">*</span></label>
+          <input
+            id="af-state"
+            name="state"
+            autocomplete="address-level1"
+            placeholder="State"
+            [ngModel]="draft().state"
+            (ngModelChange)="updateField('state', $event)"
+            (blur)="markTouched('state')"
+            [class.invalid]="showError('state')"
+            [attr.aria-invalid]="showError('state')"
+          />
+          @if (errorFor('state'); as msg) {
+            <small class="field-error">{{ msg }}</small>
+          }
+        </div>
+
+        <div class="input-box">
+          <label for="af-pinCode">PIN Code <span class="req">*</span></label>
+          <input
+            id="af-pinCode"
+            name="pinCode"
+            type="text"
+            inputmode="numeric"
+            maxlength="10"
+            autocomplete="postal-code"
+            placeholder="PIN Code"
+            [ngModel]="draft().pinCode"
+            (ngModelChange)="updateField('pinCode', $event)"
+            (blur)="markTouched('pinCode')"
+            [class.invalid]="showError('pinCode')"
+            [attr.aria-invalid]="showError('pinCode')"
+          />
+          @if (errorFor('pinCode'); as msg) {
+            <small class="field-error">{{ msg }}</small>
+          }
+        </div>
+      </div>
+
+      <div class="popup-btn">
+        <button type="button" class="cancel-btn" (click)="close()">Cancel</button>
+
+        <button type="button" class="save-btn" [disabled]="saving()" (click)="submit()">
+          {{ saving() ? 'Saving…' : editing() ? 'Update Address' : 'Save Address' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

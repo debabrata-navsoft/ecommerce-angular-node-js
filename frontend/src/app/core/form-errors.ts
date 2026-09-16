@@ -1,6 +1,45 @@
 import { FormGroup } from '@angular/forms';
 
 import { ApiFailure } from './services/api.service';
+import { AddressUser } from '../shared/models/user.model';
+
+/** Every address field that is validated. `landmark` is optional, so it is absent here. */
+export type AddressField =
+  | 'fullName'
+  | 'email'
+  | 'phone'
+  | 'address'
+  | 'city'
+  | 'state'
+  | 'pinCode';
+
+/**
+ * Mirrors `addressRules` in the API's routes/validators.js, so the form rejects exactly
+ * what the server would reject instead of surfacing it as a 400. Shared by the checkout
+ * address form and the Address Book, which are otherwise separate components.
+ */
+export function validateAddress(a: AddressUser): Partial<Record<AddressField, string>> {
+  const errors: Partial<Record<AddressField, string>> = {};
+  const val = (v: string | number | undefined | null) => String(v ?? '').trim();
+
+  if (!val(a.fullName)) errors.fullName = 'Full name is required';
+
+  if (!val(a.email)) errors.email = 'Email is required';
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val(a.email)))
+    errors.email = 'Enter a valid email address';
+
+  if (!val(a.phone)) errors.phone = 'Phone number is required';
+  else if (!/^[0-9+\-\s()]{7,20}$/.test(val(a.phone))) errors.phone = 'Enter a valid phone number';
+
+  if (!val(a.address)) errors.address = 'Address is required';
+  if (!val(a.city)) errors.city = 'City is required';
+  if (!val(a.state)) errors.state = 'State is required';
+
+  if (!val(a.pinCode)) errors.pinCode = 'PIN code is required';
+  else if (!/^[0-9]{4,10}$/.test(val(a.pinCode))) errors.pinCode = 'Enter a valid PIN code';
+
+  return errors;
+}
 
 interface FieldIssue {
   field: string;

@@ -6,20 +6,27 @@
   <div class="products">
     @if (showCategories()) {
       <div class="filters">
-        <h2 class="filter-label">Category:</h2>
+        <label class="filter-label" for="category-filter">Category</label>
 
-        <select
-          [id]="currentSelectedCategory"
-          [name]="currentSelectedCategory"
-          [(ngModel)]="currentSelectedCategory"
-          (ngModelChange)="goToSubCategory($event)"
-        >
-          @for (cat of categories(); track cat) {
-            <option [value]="cat.toLowerCase()">
-              {{ getSubCategoryLabel(cat) }}
-            </option>
-          }
-        </select>
+        <div class="select-wrap">
+          <select
+            id="category-filter"
+            [name]="currentSelectedCategory"
+            [(ngModel)]="currentSelectedCategory"
+            (ngModelChange)="goToSubCategory($event)"
+          >
+            @for (cat of categories(); track cat) {
+              <option [value]="cat.toLowerCase()">
+                {{ getSubCategoryLabel(cat) }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <span class="result-count">
+          {{ filteredProducts().length }}
+          {{ filteredProducts().length === 1 ? 'product' : 'products' }}
+        </span>
       </div>
     }
 
@@ -28,12 +35,22 @@
         <div
           class="card"
           [ngClass]="{ 'low-stock': product.stock > 0 && product.stock < 3 }"
-          appHighlight
           (click)="viewDetails(product.id!)"
         >
-          @if (showWishlistIcon()) {
-            <div class="fav-icon">
-              <button (click)="addToWishlist(product); $event.stopPropagation()">
+          <div class="card-media">
+            @if (product.discount && product.discount > 0) {
+              <span class="badge-discount">-{{ product.discount }}%</span>
+            }
+
+            @if (showWishlistIcon()) {
+              <button
+                class="fav-btn"
+                type="button"
+                [attr.aria-label]="
+                  isWishlisted(product.id!) ? 'Remove from wishlist' : 'Add to wishlist'
+                "
+                (click)="addToWishlist(product); $event.stopPropagation()"
+              >
                 <mat-icon
                   class="material-icons-outlined"
                   [ngClass]="{ 'active-wish': isWishlisted(product.id!) }"
@@ -41,59 +58,54 @@
                   {{ isWishlisted(product.id!) ? 'favorite' : 'favorite_border' }}
                 </mat-icon>
               </button>
-            </div>
-          }
-
-          <div class="img-container">
-            <img [src]="product.image" [alt]="product.title" class="product-img" />
-          </div>
-
-          <h3>{{ product.title || '' | truncate: 35 }}</h3>
-
-          <div class="rating">
-            @for (star of getRating().getStars(product.rating || 0); track $index) {
-              <span [ngClass]="star">&#9733;</span>
             }
 
-            <span class="rating-number">({{ product.rating ?? 0 }})</span>
+            <img
+              [src]="product.image"
+              [alt]="product.title"
+              class="product-img"
+              loading="lazy"
+              decoding="async"
+            />
+
+            @if (product.stock === 0) {
+              <div class="media-veil"><span class="badge-stock out">Out of Stock</span></div>
+            }
           </div>
 
-          <p class="category">
-            <strong>Category:</strong> {{ product.subCategory | categoryLabel }}
-          </p>
+          <div class="card-body">
+            <h3 class="title">{{ product.title }}</h3>
 
-          <!-- <p class="category"><strong>Category:</strong> {{ product.subCategory }}</p> -->
-          <p class="brand"><strong>Brand:</strong> {{ product.brand }}</p>
-
-          <div class="price-box">
-            <div>
-              @if (product.discount && product.discount > 0) {
-                <span class="discount"> -{{ product.discount }}% </span>
+            <div class="rating">
+              @for (star of getRating().getStars(product.rating || 0); track $index) {
+                <span [ngClass]="star">&#9733;</span>
               }
-              <span class="final-price">
-                ₹{{ getDiscountPrice(product) | number: '1.0-0' }}.00
-              </span>
+              <span class="rating-number">{{ product.rating ?? 0 }}</span>
             </div>
 
-            <p class="original-price-mrp">
-              M.R.P.:
-              <span class="original-price">₹{{ product.price | number: '1.0-0' }}.00</span>
-            </p>
-          </div>
+            <div class="meta">
+              <span class="chip">{{ product.subCategory | categoryLabel }}</span>
+              <span class="chip chip-brand">{{ product.brand }}</span>
+            </div>
 
-          <p>{{ product.description || '' | truncate: 80 }}</p>
+            <p class="desc">{{ product.description }}</p>
 
-          @if (product.stock === 0 || product.stock < 3) {
-            <div class="status-section">
-              <div class="stock-message">
-                @if (product.stock === 0) {
-                  <span class="out-of-stock">Out of Stock</span>
-                } @else {
-                  <span class="low-stock-text">⚠️ Only few left</span>
+            <div class="card-foot">
+              <div class="price-box">
+                <span class="final-price">
+                  ₹{{ getDiscountPrice(product) | number: '1.0-0' }}
+                </span>
+
+                @if (product.discount && product.discount > 0) {
+                  <span class="original-price">₹{{ product.price | number: '1.0-0' }}</span>
                 }
               </div>
+
+              @if (product.stock > 0 && product.stock < 3) {
+                <span class="badge-stock low">Only {{ product.stock }} left</span>
+              }
             </div>
-          }
+          </div>
         </div>
       }
     </div>
