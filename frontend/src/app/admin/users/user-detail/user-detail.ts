@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, take } from 'rxjs';
 
-import { UserService } from '../../../services/user.service';
-import { OrderService } from '../../../services/order.service';
-import { User } from '../../../models/user.model';
-import { Order } from '../../../models/order.model';
-import { LoaderService } from '../../../services/loader.service';
-import { Loader } from '../../../components/loader/loader';
+import { UserService } from '../../../core/services/user.service';
+import { OrderService } from '../../../core/services/order.service';
+import { User } from '../../../shared/models/user.model';
+import { Order } from '../../../shared/models/order.model';
+import { LoaderService } from '../../../core/services/loader.service';
+import { Loader } from '../../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-user-detail',

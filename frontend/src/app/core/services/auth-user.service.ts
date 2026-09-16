@@ -1,19 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, tap } from 'rxjs';
 
-import { ApiService, fireAndShare } from '../core/api.service';
-import { SessionService } from '../core/session.service';
-import { User } from '../models/user.model';
+import { ApiService, fireAndShare } from './api.service';
+import { SessionService } from './session.service';
+import { User } from '../../shared/models/user.model';
 
-/**
- * Customer-side auth against the Node API. `login()` hits /auth/login, which accepts only
- * role 'user' — an admin credential is rejected there, so the rule that used to live in
- * this service is now enforced server-side and cannot be bypassed by calling the API
- * directly.
- *
- * `currentUser$` is the stream and `currentUser` the signal — both read the one session
- * resolved by SessionService.
- */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private api = inject(ApiService);
@@ -52,11 +43,6 @@ export class AuthService {
     );
   }
 
-  /**
-   * Eager: header, navbar and admin-header all call `logout()` without subscribing. Cold,
-   * that would leave the session cookie in place and the user still signed in after a
-   * refresh. `profile-page` does subscribe, and shareReplay keeps that working.
-   */
   logout(): Observable<void> {
     return fireAndShare(
       this.api.post<void>('/auth/logout').pipe(
@@ -87,11 +73,6 @@ export class AuthService {
     return this.api.post<void>('/auth/change-password', { currentPassword, newPassword });
   }
 
-  /**
-   * Succeeds whether or not the address is registered — the API answers the same either
-   * way so it cannot be used to enumerate accounts, so the page must not promise the mail
-   * was actually sent.
-   */
   forgotPassword(email: string): Observable<void> {
     return this.api.post<void>('/auth/forgot-password', { email });
   }
@@ -100,12 +81,6 @@ export class AuthService {
     return this.api.post<void>('/auth/reset-password', { token, password });
   }
 
-  /**
-   * The session cookie is shared across tabs, so a customer and admin login can still
-   * clash. `session_role` records which area signed in last, and the guards compare it
-   * against the role on the user document to detect a leak — keep both halves of that
-   * check in place.
-   */
   private setSessionRole(role: 'user' | 'admin'): void {
     if (this.api.isBrowser) localStorage.setItem('session_role', role);
   }

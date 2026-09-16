@@ -2,14 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { map, Observable, tap } from 'rxjs';
 
-import { ApiService, fireAndShare } from '../core/api.service';
-import { SessionService } from '../core/session.service';
-import { User } from '../models/user.model';
+import { ApiService, fireAndShare } from './api.service';
+import { SessionService } from './session.service';
+import { User } from '../../shared/models/user.model';
 
-/**
- * Admin-side auth. /auth/admin/login accepts only role 'admin' and refuses everyone else,
- * so the customer/admin split is enforced by the API rather than by this service.
- */
 @Injectable({ providedIn: 'root' })
 export class AdminAuthService {
   private api = inject(ApiService);
@@ -32,7 +28,6 @@ export class AdminAuthService {
     );
   }
 
-  /** Eager for the same reason as AuthService.logout() — admin-header does not subscribe. */
   logout(): Observable<void> {
     return fireAndShare(
       this.api.post<void>('/auth/logout').pipe(

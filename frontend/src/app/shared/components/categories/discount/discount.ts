@@ -11,7 +11,7 @@ import {
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
-import { ProductService } from '../../../services/product.service';
+import { ProductService } from '../../../../core/services/product.service';
 import { Product } from '../../../models/product.model';
 
 @Component({

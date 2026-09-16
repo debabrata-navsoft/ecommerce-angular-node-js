@@ -1,9 +1,9 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { Observable, of, tap } from 'rxjs';
 
-import { ApiService, fireAndShare } from '../core/api.service';
-import { SessionService } from '../core/session.service';
-import { CartItem } from '../models/cart.model';
+import { ApiService, fireAndShare } from './api.service';
+import { SessionService } from './session.service';
+import { CartItem } from '../../shared/models/cart.model';
 import { CartService } from './cart.service';
 
 @Injectable({ providedIn: 'root' })
@@ -28,7 +28,6 @@ export class SaveLaterService {
     this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
-  /** Runs during SSR too — the server render carries the visitor's cookie. */
   loadSavedLater(): void {
     this.api.get<{ items: CartItem[] }>('/saved-later').subscribe({
       next: (res) => this.savedLater.set(res.items),
@@ -36,11 +35,6 @@ export class SaveLaterService {
     });
   }
 
-  /**
-   * Delegates to the atomic cart endpoint so both lists move together. Returns void
-   * rather than the request: HttpClient observables are cold, so handing one back after
-   * subscribing here would fire a second request if the caller subscribed too.
-   */
   saveForLater(item: CartItem): void {
     this.cartService.saveForLater(item).subscribe({
       next: (res) => this.savedLater.set(res.savedLater),

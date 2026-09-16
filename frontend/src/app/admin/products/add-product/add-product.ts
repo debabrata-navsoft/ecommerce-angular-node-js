@@ -5,11 +5,11 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 
-import { ProductService } from '../../../services/product.service';
-import { Product, ProductField } from '../../../models/product.model';
-import { SnackbarService } from '../../../services/snackbar.service';
-import { LoaderService } from '../../../services/loader.service';
-import { Loader } from '../../../components/loader/loader';
+import { ProductService } from '../../../core/services/product.service';
+import { Product, ProductField } from '../../../shared/models/product.model';
+import { SnackbarService } from '../../../core/services/snackbar.service';
+import { LoaderService } from '../../../core/services/loader.service';
+import { Loader } from '../../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-add-product',

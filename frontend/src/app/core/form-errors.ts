@@ -1,6 +1,6 @@
 import { FormGroup } from '@angular/forms';
 
-import { ApiFailure } from './api.service';
+import { ApiFailure } from './services/api.service';
 
 interface FieldIssue {
   field: string;

@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, input, Input, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { ProductService } from '../../../services/product.service';
+import { ProductService } from '../../../../core/services/product.service';
 import { Product } from '../../../models/product.model';
 
 @Component({

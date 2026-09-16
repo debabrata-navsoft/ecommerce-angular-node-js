@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, catchError, filter, map, Observable, of, tap } from 'rxjs';
 
-import { User } from '../models/user.model';
+import { User } from '../../shared/models/user.model';
 import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })

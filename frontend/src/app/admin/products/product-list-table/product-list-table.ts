@@ -4,12 +4,12 @@ import { RouterLink } from '@angular/router';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIcon } from '@angular/material/icon';
 
-import { ProductService } from '../../../services/product.service';
-import { Product } from '../../../models/product.model';
-import { TruncatePipe } from '../../../pipes/truncate.pipe';
-import { SnackbarService } from '../../../services/snackbar.service';
-import { LoaderService } from '../../../services/loader.service';
-import { Loader } from '../../../components/loader/loader';
+import { ProductService } from '../../../core/services/product.service';
+import { Product } from '../../../shared/models/product.model';
+import { TruncatePipe } from '../../../shared/pipes/truncate.pipe';
+import { SnackbarService } from '../../../core/services/snackbar.service';
+import { LoaderService } from '../../../core/services/loader.service';
+import { Loader } from '../../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-product-list',

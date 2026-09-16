@@ -3,17 +3,17 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 
-import { ProductService } from '../../../services/product.service';
-import { Product } from '../../../models/product.model';
-import { AuthService } from '../../../services/auth-user.service';
-import { WishlistService } from '../../../services/wishlist.service';
-import { SnackbarService } from '../../../services/snackbar.service';
-import { Rating } from '../../../utils/rating.util';
-import { TruncatePipe } from '../../../pipes/truncate.pipe';
-import { CategoryLabelPipe } from '../../../pipes/category-label.pipe';
-import { Highlight } from '../../../directives/highlight';
-import { LoaderService } from '../../../services/loader.service';
-import { Loader } from '../../../components/loader/loader';
+import { ProductService } from '../../../core/services/product.service';
+import { Product } from '../../../shared/models/product.model';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { WishlistService } from '../../../core/services/wishlist.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
+import { Rating } from '../../../shared/utils/rating.util';
+import { TruncatePipe } from '../../../shared/pipes/truncate.pipe';
+import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
+import { Highlight } from '../../../shared/directives/highlight';
+import { LoaderService } from '../../../core/services/loader.service';
+import { Loader } from '../../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-new-arrivals',

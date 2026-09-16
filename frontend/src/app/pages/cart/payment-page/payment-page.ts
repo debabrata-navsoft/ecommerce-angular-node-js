@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { Loader } from '../../../components/loader/loader';
-import { PaymentMethod } from '../../../models/payment.model';
-import { TruncatePipe } from '../../../pipes/truncate.pipe';
-import { CartService } from '../../../services/cart.service';
-import { LoaderService } from '../../../services/loader.service';
-import { OrderService, PlaceOrderResult } from '../../../services/order.service';
-import { RazorpayService, RazorpaySuccess } from '../../../services/razorpay.service';
-import { SnackbarService } from '../../../services/snackbar.service';
+import { Loader } from '../../../shared/components/loader/loader';
+import { PaymentMethod } from '../../../shared/models/payment.model';
+import { TruncatePipe } from '../../../shared/pipes/truncate.pipe';
+import { CartService } from '../../../core/services/cart.service';
+import { LoaderService } from '../../../core/services/loader.service';
+import { OrderService, PlaceOrderResult } from '../../../core/services/order.service';
+import { RazorpayService, RazorpaySuccess } from '../../../core/services/razorpay.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-payment-page',

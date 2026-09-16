@@ -3,7 +3,7 @@ import { inject, Injectable, PLATFORM_ID, REQUEST } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { catchError, Observable, shareReplay, throwError } from 'rxjs';
 
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 export type QueryParams = Record<string, string | number | boolean | undefined | null>;
 

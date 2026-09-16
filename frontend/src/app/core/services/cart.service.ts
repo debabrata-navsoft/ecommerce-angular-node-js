@@ -1,17 +1,11 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { Observable, of, tap } from 'rxjs';
 
-import { ApiService, fireAndShare } from '../core/api.service';
-import { SessionService } from '../core/session.service';
-import { CartItem } from '../models/cart.model';
-import { Product } from '../models/product.model';
+import { ApiService, fireAndShare } from './api.service';
+import { SessionService } from './session.service';
+import { CartItem } from '../../shared/models/cart.model';
+import { Product } from '../../shared/models/product.model';
 
-/**
- * Same shape as before: signals in a root service, mutated optimistically so the UI does
- * not wait on the round-trip. The difference is that every mutation endpoint returns the
- * authoritative list, so the optimistic value is reconciled against the server instead of
- * being assumed correct — and a failed write rolls back rather than leaving the UI lying.
- */
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private api = inject(ApiService);
@@ -22,7 +16,6 @@ export class CartService {
   cart = signal<CartItem[]>([]);
   itemCount = computed(() => this.cart().length);
 
-  /** Kept for templates that still read it; SaveLaterService owns the real list. */
   savedLater = signal<CartItem[]>([]);
 
   totalPrice = computed(() =>
@@ -42,7 +35,6 @@ export class CartService {
     this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
-  /** Runs during SSR too — the server render carries the visitor's cookie. */
   loadCart(): void {
     this.api.get<{ items: CartItem[] }>('/cart').subscribe({
       next: (res) => {
@@ -58,7 +50,6 @@ export class CartService {
     return item.price - (item.price * item.discount) / 100;
   }
 
-  /** Applies `next` immediately, then replaces it with whatever the server reports. */
   private commit(
     request: Observable<{ items: CartItem[] }>,
     next: CartItem[],
@@ -148,11 +139,6 @@ export class CartService {
     ).subscribe({ error: () => undefined });
   }
 
-  /**
-   * Moves the item to saved-later in one request. Previously this only removed from the
-   * cart and every caller had to remember to also call SaveLaterService.saveForLater() —
-   * forget one and the item vanished.
-   */
   saveForLater(item: CartItem): Observable<{ items: CartItem[]; savedLater: CartItem[] }> {
     if (!this.session.uid) return of({ items: this.cart(), savedLater: this.savedLater() });
 

@@ -2,9 +2,9 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
-import { AddressUser, User } from '../../../models/user.model';
-import { SnackbarService } from '../../../services/snackbar.service';
-import { UserService } from '../../../services/user.service';
+import { AddressUser, User } from '../../../shared/models/user.model';
+import { SnackbarService } from '../../../core/services/snackbar.service';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-address',

@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 
-import { Header } from '../../components/header/header';
-import { Footer } from '../../components/footer/footer';
+import { Header } from '../../shared/components/header/header';
+import { Footer } from '../../shared/components/footer/footer';
 
 @Component({
   selector: 'app-customer-layout',

@@ -3,9 +3,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
-import { environment } from '../../environments/environment';
-import { SessionService } from '../core/session.service';
-import { Product } from '../models/product.model';
+import { environment } from '../../../environments/environment';
+import { SessionService } from './session.service';
+import { Product } from '../../shared/models/product.model';
 import { WishlistService } from './wishlist.service';
 
 const USER = {

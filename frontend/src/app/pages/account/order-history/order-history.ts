@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { Order, OrderItem } from '../../../models/order.model';
-import { OrderService } from '../../../services/order.service';
+import { Order, OrderItem } from '../../../shared/models/order.model';
+import { OrderService } from '../../../core/services/order.service';
 
 @Component({
   selector: 'app-order-history',

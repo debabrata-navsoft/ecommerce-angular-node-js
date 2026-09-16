@@ -1,8 +1,8 @@
 import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
-import { environment } from '../../environments/environment';
-import { PaymentMethod } from '../models/payment.model';
+import { environment } from '../../../environments/environment';
+import { PaymentMethod } from '../../shared/models/payment.model';
 import { RazorpayHandoff } from './order.service';
 
 export interface RazorpayPrefill {
@@ -17,14 +17,6 @@ export interface RazorpaySuccess {
   signature: string;
 }
 
-/**
- * Opens the Razorpay checkout for an order the API already created.
- *
- * The important change from the previous version: the checkout is bound to a server-side
- * `order_id`, and the success callback hands back `razorpay_signature` so the API can
- * verify the payment with its secret. Before, the browser reported a bare payment id and
- * the app recorded the order as paid on that word alone.
- */
 @Injectable({ providedIn: 'root' })
 export class RazorpayService {
   private platformId = inject(PLATFORM_ID);
@@ -60,7 +52,6 @@ export class RazorpayService {
     await this.loadRazorpay();
 
     const options = {
-      // Prefer the key the API minted the order with, so the two can never disagree.
       key: handoff.keyId || environment.razorpayKey,
       order_id: handoff.orderId,
       amount: handoff.amount,

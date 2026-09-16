@@ -2,16 +2,16 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { EMPTY, switchMap } from 'rxjs';
 
-import { AuthService } from '../../../services/auth-user.service';
-import { OrderService } from '../../../services/order.service';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { OrderService } from '../../../core/services/order.service';
 import { ProfileDetails } from '../profile-details/profile-details';
 import { Address } from '../address/address';
 import { OrderHistory } from '../order-history/order-history';
-import { User } from '../../../models/user.model';
-import { Order } from '../../../models/order.model';
-import { SnackbarService } from '../../../services/snackbar.service';
-import { LoaderService } from '../../../services/loader.service';
-import { Loader } from '../../../components/loader/loader';
+import { User } from '../../../shared/models/user.model';
+import { Order } from '../../../shared/models/order.model';
+import { SnackbarService } from '../../../core/services/snackbar.service';
+import { LoaderService } from '../../../core/services/loader.service';
+import { Loader } from '../../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-profile-page',

@@ -2,14 +2,14 @@ import { afterNextRender, Component, computed, inject, signal } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
-import { WishlistService } from '../../services/wishlist.service';
-import { CartService } from '../../services/cart.service';
-import { Rating } from '../../utils/rating.util';
-import { Product } from '../../models/product.model';
-import { SnackbarService } from '../../services/snackbar.service';
-import { ProductService } from '../../services/product.service';
-import { CategoryLabelPipe } from '../../pipes/category-label.pipe';
-import { Loader } from '../../components/loader/loader';
+import { WishlistService } from '../../core/services/wishlist.service';
+import { CartService } from '../../core/services/cart.service';
+import { Rating } from '../../shared/utils/rating.util';
+import { Product } from '../../shared/models/product.model';
+import { SnackbarService } from '../../core/services/snackbar.service';
+import { ProductService } from '../../core/services/product.service';
+import { CategoryLabelPipe } from '../../shared/pipes/category-label.pipe';
+import { Loader } from '../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-wishlist-page',

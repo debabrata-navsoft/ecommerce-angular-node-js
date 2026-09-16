@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { AdminLayout } from '../layouts/admin-layout/admin-layout';
 import { Dashboard } from './dashboard/dashboard';
-import { adminAuthGuard } from '../guards/admin-auth-guard';
+import { adminAuthGuard } from '../core/guards/admin-auth-guard';
 import { AdminLoginPage } from './auth/admin-login-page/admin-login-page';
 
 import { UserList } from './users/user-list/user-list';

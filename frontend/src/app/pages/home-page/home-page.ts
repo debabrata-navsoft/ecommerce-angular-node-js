@@ -2,22 +2,22 @@ import { afterNextRender, Component, DestroyRef, inject, PLATFORM_ID, signal } f
 import { RouterLink } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 
-import { Hero } from '../../components/hero/hero';
-import { Mobiles } from '../../components/categories/electronics/mobiles/mobiles';
-import { TodayDeals } from '../../components/categories/today-deals/today-deals';
-import { MoreItems } from '../../components/categories/more-items/more-items';
-import { Discount } from '../../components/categories/discount/discount';
-import { SmartWatches } from '../../components/categories/electronics/smart-watches/smart-watches';
-import { Laptops } from '../../components/categories/electronics/laptops/laptops';
-import { Footwear } from '../../components/categories/footwear/footwear';
-import { Trending } from '../../components/categories/trending/trending';
-import { Headphones } from '../../components/categories/electronics/headphones/headphones';
-import { Beauty } from '../../components/categories/beauty/beauty';
-import { Jewellery } from '../../components/categories/jewellery/jewellery';
-import { BabyKids } from '../../components/categories/baby-kids/baby-kids';
-import { HomeLiving } from '../../components/categories/home-living/home-living';
-import { Loader } from '../../components/loader/loader';
-import { LoaderService } from '../../services/loader.service';
+import { Hero } from '../../shared/components/hero/hero';
+import { Mobiles } from '../../shared/components/categories/electronics/mobiles/mobiles';
+import { TodayDeals } from '../../shared/components/categories/today-deals/today-deals';
+import { MoreItems } from '../../shared/components/categories/more-items/more-items';
+import { Discount } from '../../shared/components/categories/discount/discount';
+import { SmartWatches } from '../../shared/components/categories/electronics/smart-watches/smart-watches';
+import { Laptops } from '../../shared/components/categories/electronics/laptops/laptops';
+import { Footwear } from '../../shared/components/categories/footwear/footwear';
+import { Trending } from '../../shared/components/categories/trending/trending';
+import { Headphones } from '../../shared/components/categories/electronics/headphones/headphones';
+import { Beauty } from '../../shared/components/categories/beauty/beauty';
+import { Jewellery } from '../../shared/components/categories/jewellery/jewellery';
+import { BabyKids } from '../../shared/components/categories/baby-kids/baby-kids';
+import { HomeLiving } from '../../shared/components/categories/home-living/home-living';
+import { Loader } from '../../shared/components/loader/loader';
+import { LoaderService } from '../../core/services/loader.service';
 
 @Component({
   selector: 'app-home-page',

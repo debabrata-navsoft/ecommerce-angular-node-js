@@ -3,9 +3,9 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { CategoryLabelPipe } from '../../pipes/category-label.pipe';
-import { CartService } from '../../services/cart.service';
+import { CartService } from '../../../core/services/cart.service';
 import { CartItem } from '../../models/cart.model';
-import { SaveLaterService } from '../../services/save-later.service';
+import { SaveLaterService } from '../../../core/services/save-later.service';
 
 @Component({
   selector: 'app-save-later',

@@ -4,12 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { AuthService } from '../../services/auth-user.service';
+import { AuthService } from '../../../core/services/auth-user.service';
 import { User } from '../../models/user.model';
 import { Category } from '../../models/category.model';
 import { CATEGORIES } from '../../data/category.data';
 import { MENU, MenuItem } from '../../data/menu.data';
-import { SnackbarService } from '../../services/snackbar.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-navbar',

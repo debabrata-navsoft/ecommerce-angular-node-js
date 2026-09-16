@@ -4,10 +4,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
 
-import { ApiFailure } from '../../../core/api.service';
+import { ApiFailure } from '../../../core/services/api.service';
 import { applyServerErrors, clearServerErrors } from '../../../core/form-errors';
-import { AuthService } from '../../../services/auth-user.service';
-import { SnackbarService } from '../../../services/snackbar.service';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-forgot-password-page',

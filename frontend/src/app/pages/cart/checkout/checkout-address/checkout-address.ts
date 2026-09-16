@@ -11,9 +11,9 @@ import {
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 
-import { AddressUser, User } from '../../../../models/user.model';
-import { UserService } from '../../../../services/user.service';
-import { SnackbarService } from '../../../../services/snackbar.service';
+import { AddressUser, User } from '../../../../shared/models/user.model';
+import { UserService } from '../../../../core/services/user.service';
+import { SnackbarService } from '../../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-checkout-address',

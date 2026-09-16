@@ -3,16 +3,8 @@ import { CanActivateFn, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { map, of, take } from 'rxjs';
 
-import { SessionService } from '../core/session.service';
+import { SessionService } from '../services/session.service';
 
-/**
- * Admin-area guard, the mirror of authGuard. `session.user$` withholds its first emission
- * until the session has actually been resolved, which is what `auth.authStateReady()`
- * used to buy us — without it a hard refresh of /admin would bounce a signed-in admin.
- *
- * Keeps the dual check: the role on the user plus `session_role`, so a customer session
- * shared through the same cookie cannot sit in an admin tab.
- */
 export const adminAuthGuard: CanActivateFn = (_route, state) => {
   const platformId = inject(PLATFORM_ID);
   const router = inject(Router);
@@ -32,7 +24,6 @@ export const adminAuthGuard: CanActivateFn = (_route, state) => {
       const isAdmin = user.role === 'admin';
       const sessionRole = localStorage.getItem('session_role');
 
-      // A customer's session leaked into the admin tab.
       if (!isAdmin || sessionRole === 'user') {
         return isLoginPage ? true : router.createUrlTree(['/admin/login']);
       }

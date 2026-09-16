@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject } from '@angular/core';
 
-import { AdminAuthService } from '../../../services/auth-admin.service';
-import { SnackbarService } from '../../../services/snackbar.service';
+import { AdminAuthService } from '../../../core/services/auth-admin.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-admin-header',

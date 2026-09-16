@@ -2,12 +2,12 @@ import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
-import { CategoryLabelPipe } from '../../../pipes/category-label.pipe';
-import { SaveLater } from '../../../components/save-later/save-later';
-import { CartService } from '../../../services/cart.service';
-import { SaveLaterService } from '../../../services/save-later.service';
-import { CartItem } from '../../../models/cart.model';
-import { Loader } from '../../../components/loader/loader';
+import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
+import { SaveLater } from '../../../shared/components/save-later/save-later';
+import { CartService } from '../../../core/services/cart.service';
+import { SaveLaterService } from '../../../core/services/save-later.service';
+import { CartItem } from '../../../shared/models/cart.model';
+import { Loader } from '../../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-cart-page',

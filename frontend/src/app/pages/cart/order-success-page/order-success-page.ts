@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AuthService } from '../../../services/auth-user.service';
-import { OrderService } from '../../../services/order.service';
-import { Order } from '../../../models/order.model';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { OrderService } from '../../../core/services/order.service';
+import { Order } from '../../../shared/models/order.model';
 import { switchMap, take } from 'rxjs';
 
 @Component({

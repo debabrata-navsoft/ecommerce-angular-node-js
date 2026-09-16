@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { ApiService } from '../core/api.service';
-import { AddressUser, User } from '../models/user.model';
+import { ApiService } from './api.service';
+import { AddressUser, User } from '../../shared/models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -24,12 +24,6 @@ export class UserService {
     return this.api.delete<void>(`/users/${id}`);
   }
 
-  /**
-   * Addresses are addressed by id rather than array index. The old whole-array write
-   * (`updateUserAddress(uid, { addresses })`) silently discarded any address added from
-   * another tab between the read and the write; each of these touches only one entry and
-   * returns the server's current list.
-   */
   getAddresses(uid: string): Observable<AddressUser[]> {
     return this.api
       .get<{ items: AddressUser[] }>(`/users/${uid}/addresses`)

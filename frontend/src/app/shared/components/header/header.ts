@@ -18,12 +18,12 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { Navbar } from '../navbar/navbar';
 import { Breadcrumb } from '../breadcrumb/breadcrumb';
 import { FormsModule } from '@angular/forms';
-import { ProductService } from '../../services/product.service';
-import { CartService } from '../../services/cart.service';
+import { ProductService } from '../../../core/services/product.service';
+import { CartService } from '../../../core/services/cart.service';
 import { Product } from '../../models/product.model';
-import { WishlistService } from '../../services/wishlist.service';
-import { AuthService } from '../../services/auth-user.service';
-import { SnackbarService } from '../../services/snackbar.service';
+import { WishlistService } from '../../../core/services/wishlist.service';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-header',

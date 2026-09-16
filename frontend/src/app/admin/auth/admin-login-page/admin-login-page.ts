@@ -2,8 +2,8 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { AdminAuthService } from '../../../services/auth-admin.service';
-import { SnackbarService } from '../../../services/snackbar.service';
+import { AdminAuthService } from '../../../core/services/auth-admin.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
@@ -89,7 +89,7 @@ export class AdminLoginPage implements OnInit {
 // import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 // import { Router } from '@angular/router';
 // import { MatSnackBar } from '@angular/material/snack-bar';
-// import { AdminAuthService } from '../../../services/admin-auth-service';
+// import { AdminAuthService } from '../../../core/services/admin-auth-service';
 
 // @Component({
 //   selector: 'app-admin-login-page',

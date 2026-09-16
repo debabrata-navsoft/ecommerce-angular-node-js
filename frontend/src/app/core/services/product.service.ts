@@ -1,16 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { ApiService, QueryParams } from '../core/api.service';
-import { Product } from '../models/product.model';
+import { ApiService, QueryParams } from './api.service';
+import { Product } from '../../shared/models/product.model';
 
-/**
- * Product reads are public, so unlike the Firestore version these are no longer short-
- * circuited to EMPTY during SSR — the catalog now actually renders on the server.
- *
- * The ranked feeds moved to the API: previously every one of them downloaded the whole
- * `products` collection and sorted it in the browser.
- */
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private api = inject(ApiService);
@@ -44,7 +37,6 @@ export class ProductService {
     return this.api.delete<void>(`/products/${id}`);
   }
 
-  /** A slug matches either level, as before: `category` OR `subCategory`. */
   getProductsByCategory(category: string): Observable<Product[]> {
     return this.list('/products', { category: category.toLowerCase().trim(), sort: 'newest' });
   }

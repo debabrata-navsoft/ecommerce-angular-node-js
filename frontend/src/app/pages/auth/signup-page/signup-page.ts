@@ -12,11 +12,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { ApiFailure } from '../../../core/api.service';
+import { ApiFailure } from '../../../core/services/api.service';
 import { applyServerErrors, clearServerErrors } from '../../../core/form-errors';
-import { AuthService } from '../../../services/auth-user.service';
-import { User } from '../../../models/user.model';
-import { SnackbarService } from '../../../services/snackbar.service';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { User } from '../../../shared/models/user.model';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-signup-page',

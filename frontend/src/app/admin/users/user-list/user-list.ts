@@ -4,10 +4,10 @@ import { RouterModule } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
 
-import { UserService } from '../../../services/user.service';
-import { LoaderService } from '../../../services/loader.service';
-import { User } from '../../../models/user.model';
-import { Loader } from '../../../components/loader/loader';
+import { UserService } from '../../../core/services/user.service';
+import { LoaderService } from '../../../core/services/loader.service';
+import { User } from '../../../shared/models/user.model';
+import { Loader } from '../../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-user-list',

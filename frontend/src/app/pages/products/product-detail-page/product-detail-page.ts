@@ -3,16 +3,16 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 
-import { AuthService } from '../../../services/auth-user.service';
-import { ProductService } from '../../../services/product.service';
-import { Product } from '../../../models/product.model';
-import { Rating } from '../../../utils/rating.util';
-import { Error } from '../../../components/error/error';
-import { CartService } from '../../../services/cart.service';
-import { WishlistService } from '../../../services/wishlist.service';
-import { LoaderService } from '../../../services/loader.service';
-import { SnackbarService } from '../../../services/snackbar.service';
-import { CategoryLabelPipe } from '../../../pipes/category-label.pipe';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { ProductService } from '../../../core/services/product.service';
+import { Product } from '../../../shared/models/product.model';
+import { Rating } from '../../../shared/utils/rating.util';
+import { Error } from '../../../shared/components/error/error';
+import { CartService } from '../../../core/services/cart.service';
+import { WishlistService } from '../../../core/services/wishlist.service';
+import { LoaderService } from '../../../core/services/loader.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
+import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
 
 @Component({
   selector: 'app-product-detail-page',

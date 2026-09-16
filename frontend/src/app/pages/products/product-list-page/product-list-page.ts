@@ -13,18 +13,18 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 
-import { ProductService } from '../../../services/product.service';
-import { Product } from '../../../models/product.model';
-import { Rating } from '../../../utils/rating.util';
-import { Error } from '../../../components/error/error';
-import { TruncatePipe } from '../../../pipes/truncate.pipe';
-import { Highlight } from '../../../directives/highlight';
-import { WishlistService } from '../../../services/wishlist.service';
-import { AuthService } from '../../../services/auth-user.service';
-import { LoaderService } from '../../../services/loader.service';
-import { SnackbarService } from '../../../services/snackbar.service';
-import { CATEGORIES } from '../../../data/category.data';
-import { CategoryLabelPipe } from '../../../pipes/category-label.pipe';
+import { ProductService } from '../../../core/services/product.service';
+import { Product } from '../../../shared/models/product.model';
+import { Rating } from '../../../shared/utils/rating.util';
+import { Error } from '../../../shared/components/error/error';
+import { TruncatePipe } from '../../../shared/pipes/truncate.pipe';
+import { Highlight } from '../../../shared/directives/highlight';
+import { WishlistService } from '../../../core/services/wishlist.service';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { LoaderService } from '../../../core/services/loader.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
+import { CATEGORIES } from '../../../shared/data/category.data';
+import { CategoryLabelPipe } from '../../../shared/pipes/category-label.pipe';
 
 @Component({
   selector: 'app-product-list-page',
@@ -214,17 +214,17 @@ export class ProductListPage implements OnInit {
 // import { ActivatedRoute, Router } from '@angular/router';
 // import { MatIcon } from '@angular/material/icon';
 
-// import { ProductService } from '../../../services/product.service';
-// import { Product } from '../../../models/product.model';
-// import { Rating } from '../../../utils/rating.util';
-// import { Error } from '../../../components/error/error';
-// import { TruncatePipe } from '../../../pipes/truncate.pipe';
-// import { Highlight } from '../../../directives/highlight';
-// import { WishlistService } from '../../../services/wishlist.service';
-// import { AuthService } from '../../../services/auth-user.service';
-// import { LoaderService } from '../../../services/loader.service';
-// import { SnackbarService } from '../../../services/snackbar.service';
-// import { CATEGORIES } from '../../../data/category.data';
+// import { ProductService } from '../../../core/services/product.service';
+// import { Product } from '../../../shared/models/product.model';
+// import { Rating } from '../../../shared/utils/rating.util';
+// import { Error } from '../../../shared/components/error/error';
+// import { TruncatePipe } from '../../../shared/pipes/truncate.pipe';
+// import { Highlight } from '../../../shared/directives/highlight';
+// import { WishlistService } from '../../../core/services/wishlist.service';
+// import { AuthService } from '../../../core/services/auth-user.service';
+// import { LoaderService } from '../../../core/services/loader.service';
+// import { SnackbarService } from '../../../core/services/snackbar.service';
+// import { CATEGORIES } from '../../../shared/data/category.data';
 
 // @Component({
 //   selector: 'app-product-list-page',

@@ -1,9 +1,9 @@
 import { Component, inject, input, output, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { ProfileForm, User } from '../../../models/user.model';
-import { AuthService } from '../../../services/auth-user.service';
-import { SnackbarService } from '../../../services/snackbar.service';
+import { ProfileForm, User } from '../../../shared/models/user.model';
+import { AuthService } from '../../../core/services/auth-user.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-profile-details',
@@ -162,7 +162,7 @@ export class ProfileDetails {
 }
 
 // import { Component, input } from '@angular/core';
-// import { User } from '../../../models/user.model';
+// import { User } from '../../../shared/models/user.model';
 
 // @Component({
 //   selector: 'app-profile-details',

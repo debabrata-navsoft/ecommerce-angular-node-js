@@ -3,16 +3,16 @@ import { CommonModule, DatePipe, DecimalPipe, SlicePipe } from '@angular/common'
 import { RouterModule } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 
-import { UserService } from '../../services/user.service';
-import { ProductService } from '../../services/product.service';
-import { OrderService } from '../../services/order.service';
-import { LoaderService } from '../../services/loader.service';
-import { User } from '../../models/user.model';
-import { Product } from '../../models/product.model';
-import { Order } from '../../models/order.model';
-import { TruncatePipe } from '../../pipes/truncate.pipe';
-import { AdminAuthService } from '../../services/auth-admin.service';
-import { Loader } from '../../components/loader/loader';
+import { UserService } from '../../core/services/user.service';
+import { ProductService } from '../../core/services/product.service';
+import { OrderService } from '../../core/services/order.service';
+import { LoaderService } from '../../core/services/loader.service';
+import { User } from '../../shared/models/user.model';
+import { Product } from '../../shared/models/product.model';
+import { Order } from '../../shared/models/order.model';
+import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
+import { AdminAuthService } from '../../core/services/auth-admin.service';
+import { Loader } from '../../shared/components/loader/loader';
 
 @Component({
   selector: 'app-dashboard',
