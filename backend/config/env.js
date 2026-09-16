@@ -41,6 +41,13 @@ export const env = {
     keySecret: process.env.RAZORPAY_KEY_SECRET ?? '',
   },
 
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME ?? '',
+    apiKey: process.env.CLOUDINARY_API_KEY ?? '',
+    apiSecret: process.env.CLOUDINARY_API_SECRET ?? '',
+    folder: process.env.CLOUDINARY_FOLDER ?? 'snapcart/avatars',
+  },
+
   smtp: {
     host: process.env.SMTP_HOST ?? '',
     port: Number(process.env.SMTP_PORT ?? 587),
@@ -58,5 +65,10 @@ export const env = {
 export const isProduction = env.nodeEnv === 'production';
 
 export const razorpayConfigured = Boolean(env.razorpay.keyId && env.razorpay.keySecret);
+
+/** Without these the avatar upload endpoints return 503 instead of failing mid-upload. */
+export const cloudinaryConfigured = Boolean(
+  env.cloudinary.cloudName && env.cloudinary.apiKey && env.cloudinary.apiSecret,
+);
 
 export const smtpConfigured = Boolean(env.smtp.host && env.smtp.user && env.smtp.pass);

@@ -17,8 +17,6 @@ import { ProductService } from '../../../core/services/product.service';
 import { Product } from '../../../shared/models/product.model';
 import { Rating } from '../../../shared/utils/rating.util';
 import { Error } from '../../../shared/components/error/error';
-import { TruncatePipe } from '../../../shared/pipes/truncate.pipe';
-import { Highlight } from '../../../shared/directives/highlight';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { AuthService } from '../../../core/services/auth-user.service';
 import { LoaderService } from '../../../core/services/loader.service';

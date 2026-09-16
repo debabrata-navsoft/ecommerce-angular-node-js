@@ -4,13 +4,47 @@
   <div class="account-page">
     <aside class="account-sidebar">
       <div class="profile-box">
-        <div class="avatar">
-          {{ user()?.firstName?.charAt(0) }}{{ user()?.lastName?.charAt(0) }}
+        <div class="avatar-wrap">
+          @if (user()?.avatarUrl) {
+            <img class="avatar-img" [src]="user()!.avatarUrl" alt="Profile photo" />
+          } @else {
+            <div class="avatar">
+              {{ user()?.firstName?.charAt(0) }}{{ user()?.lastName?.charAt(0) }}
+            </div>
+          }
+
+          <button
+            type="button"
+            class="avatar-edit"
+            aria-label="Change profile photo"
+            [disabled]="uploadingAvatar()"
+            (click)="avatarInput.click()"
+          >
+            @if (uploadingAvatar()) {
+              <span class="spinner"></span>
+            } @else {
+              <mat-icon class="material-icons-outlined">photo_camera</mat-icon>
+            }
+          </button>
+
+          <input
+            #avatarInput
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            hidden
+            (change)="onAvatarSelected($event)"
+          />
         </div>
 
         <div class="profile-name">
           <p>Hi,</p>
           <h3>{{ user()?.firstName }} {{ user()?.lastName }}</h3>
+
+          @if (user()?.avatarUrl) {
+            <button type="button" class="avatar-remove" (click)="removeAvatar()">
+              Remove photo
+            </button>
+          }
         </div>
       </div>
 
@@ -80,11 +114,58 @@
           <h2>Payment Methods</h2>
         </div>
 
-        <div class="empty-state">
-          <p class="empty-title">No saved payment methods</p>
-          <p class="empty-sub">Cards and UPI you save at checkout will appear here.</p>
-          <button type="button" class="primary-btn">Add New Payment Method</button>
+        <p class="pay-note">
+          Card details are never stored here — Razorpay handles them at checkout. You can set a
+          preferred method and save your UPI ids.
+        </p>
+
+        <h3 class="sub-head">Preferred method</h3>
+
+        <div class="method-grid">
+          @for (m of paymentMethods; track m.value) {
+            <button
+              type="button"
+              class="method-chip"
+              [class.selected]="defaultMethod() === m.value"
+              (click)="setDefaultMethod(m.value)"
+            >
+              {{ m.label }}
+            </button>
+          }
         </div>
+
+        <h3 class="sub-head">Saved UPI IDs</h3>
+
+        @if (upiIds().length) {
+          <ul class="upi-list">
+            @for (id of upiIds(); track id) {
+              <li>
+                <span class="upi-id">{{ id }}</span>
+                <button type="button" class="link-danger" (click)="removeUpi(id)">Remove</button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">No UPI ids saved yet.</p>
+        }
+
+        @if (upiIds().length < 5) {
+          <div class="upi-add">
+            <input
+              [ngModel]="newUpi()"
+              (ngModelChange)="newUpi.set($event)"
+              name="newUpi"
+              placeholder="yourname@bank"
+              [class.invalid]="upiError()"
+              (keyup.enter)="addUpi()"
+            />
+            <button type="button" class="primary-btn" (click)="addUpi()">Add UPI ID</button>
+          </div>
+
+          @if (upiError(); as msg) {
+            <small class="field-error">{{ msg }}</small>
+          }
+        }
       }
     </section>
   </div>

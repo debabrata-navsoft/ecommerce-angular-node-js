@@ -254,9 +254,10 @@ is fulfilment (pending/shipped/delivered/cancelled) and `paymentStatus` is payme
 
 `CheckoutPage` collects the address and totals, then navigates to `/cart/payment` passing the payload through **router navigation state**, not a service. `PaymentPage` reads it in its constructor via `router.currentNavigation()?.extras?.state` and redirects home with a "Session expired" message if absent — so the payment page cannot be deep-linked or reloaded. `CheckoutPage` also has an `effect()` that bounces to `/` if the cart empties, explicitly skipped while on the payment URL and after `orderPlaced` is set.
 
-**`placeOrder` rejects a non-`cod` order with 503 up front when `razorpayConfigured` is
-false, before `createOrderFromCart` runs.** That call reserves stock and empties the cart,
-so discovering the missing keys afterwards (the old behaviour) left a cancelled order in
+**`createOrderFromCart` rejects a non-`cod` order with 503 when `razorpayConfigured` is
+false, as its first act.** That function reserves stock and empties the cart, so the guard
+lives with the side effect rather than in the controller, where a second caller could skip
+it. Discovering the missing keys afterwards (the old behaviour) left a cancelled order in
 the customer's history and threw their cart away on every attempt. The payment page also
 reads `GET /api/payments/config` on load and locks the online methods when the server
 cannot take them — keep both, the server-side one is the guarantee.
@@ -304,8 +305,12 @@ both or they drift.
 `GET /api/orders/stream` is a Server-Sent Events feed, so an admin moving an order to
 shipped or delivered lands on the customer's My Orders without a refresh. The open
 connections live in a `Set` in `order.controller.js`; `publishOrder(order)` is called after
-every order write (`placeOrder`, `updateOrderStatus`, `cancelMyOrder`, `verifyPayment`,
-`abandonPayment`). A customer receives only their own orders, an admin receives all.
+every order write — both branches of `placeOrder`, plus `updateOrderStatus`,
+`cancelMyOrder`, `verifyPayment` and `abandonPayment`. A customer receives only their own
+orders, an admin receives all.
+
+`publishOrder` **returns the serialized order**, so handlers do `res.json({ order:
+publishOrder(order) })` rather than calling `toJSON()` a second time for the response.
 
 - The route **must stay above `/:orderId`** in `order.routes.js`, which would otherwise
   match `stream` as an order id.
@@ -317,6 +322,35 @@ every order write (`placeOrder`, `updateOrderStatus`, `cancelMyOrder`, `verifyPa
   `X-Accel-Buffering: no` stops nginx buffering the stream.
 - **In-process only.** With more than one API instance a client misses writes made by the
   other; move the registry to Redis pub/sub before scaling out.
+
+### Order activity trail
+
+`order.activity` is an append-only `[{ status, note, at }]` list. **`setOrderStatus()` in
+`services/orders.js` is the single chokepoint for a fulfilment-status change** — it sets
+`status`, appends the matching entry via `recordActivity()` and saves, so a new status
+writer cannot silently skip the trail. `STATUS_NOTES` lives beside it. It powers
+`/orders/:orderId`, the customer tracking page, which
+renders a three-step progress track plus the raw activity list and subscribes to the SSE
+feed so an admin's change lands without a refresh. `status` remains the current state —
+this is only how it got there.
+
+### Profile: avatar uploads and payment preferences
+
+- **Avatars go straight from the browser to Cloudinary.** `GET /api/users/:id/avatar`
+  returns signed upload parameters; the browser POSTs the file to Cloudinary itself and
+  then sends the resulting URL to `POST /api/users/:id/avatar`. The file never transits
+  this API and `CLOUDINARY_API_SECRET` never leaves it — only an HMAC of the parameters
+  does. `UserService.uploadAvatar` uses plain `fetch` for the Cloudinary leg on purpose:
+  `HttpClient` would attach the session cookie and the API base URL.
+  Because the client supplies the final URL, `saveAvatar` rejects anything that is not
+  `https://res.cloudinary.com/<your-cloud>/…`. The `public_id` is `user_<id>` so a new
+  upload overwrites the old rather than orphaning it. Without the keys, both endpoints
+  return 503 rather than failing mid-upload.
+- **`paymentPrefs` stores a default method and UPI ids — never card data.** Holding a card
+  number or CVV would put this app in PCI DSS scope, and Razorpay already owns the card
+  flow. `updatePaymentPrefs` reads only `defaultMethod` and `upiIds`, so posting card
+  fields silently does nothing. If saved cards are wanted later, store a Razorpay token id
+  and the last four digits, never the number.
 
 ### Cross-cutting UI services
 

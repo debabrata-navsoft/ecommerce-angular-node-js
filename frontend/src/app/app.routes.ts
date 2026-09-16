@@ -31,6 +31,14 @@ export const routes: Routes = [
       },
 
       {
+        path: 'orders/:orderId',
+        canActivate: [authGuard],
+        data: { breadcrumb: 'Order' },
+        loadComponent: () =>
+          import('./pages/account/order-track/order-track').then((m) => m.OrderTrack),
+      },
+
+      {
         path: 'about',
         component: AboutPage,
         data: { breadcrumb: 'About' },

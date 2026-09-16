@@ -1,40 +1,55 @@
 <div class="section-head">
   <h2>My Orders</h2>
-  @if (orders().length > 0) {
-    <span class="count">
-      {{ orders().length }} {{ orders().length === 1 ? 'order' : 'orders' }}
-    </span>
+  @if (rows().length > 0) {
+    <span class="count">{{ rows().length }} {{ rows().length === 1 ? 'order' : 'orders' }}</span>
   }
 </div>
 
-@if (orders().length > 0) {
-  @for (order of orders(); track order.orderId) {
+@if (rows().length > 0) {
+  @for (row of rows(); track row.order.orderId) {
     <article class="order-card">
       <header class="order-head">
         <div class="order-id">
           <span class="label">Order ID</span>
-          <code>{{ order.orderId }}</code>
+          <code>{{ row.order.orderId }}</code>
         </div>
 
-        <span class="status-pill" [ngClass]="'status-' + order.status">
-          {{ order.status | titlecase }}
-        </span>
+        <div class="head-right">
+          <span class="status-pill" [ngClass]="'status-' + row.order.status">
+            {{ row.order.status | titlecase }}
+          </span>
+
+          <a class="track-btn" [routerLink]="['/orders', row.order.orderId]">Track</a>
+        </div>
       </header>
 
       <div class="order-meta">
         <div>
           <span class="label">Placed on</span>
-          <strong>{{ order.createdAt | date: 'd MMM y, h:mm a' }}</strong>
+          <span class="value">{{ row.order.createdAt | date: 'd MMM y, h:mm a' }}</span>
+        </div>
+
+        <div>
+          <span class="label">Payment</span>
+          <span class="value">
+            {{ row.paymentLabel }}
+
+            @if (row.isPaid) {
+              <span class="pay-chip paid">Paid</span>
+            } @else {
+              <span class="pay-chip unpaid">Unpaid</span>
+            }
+          </span>
         </div>
 
         <div class="meta-total">
           <span class="label">Total</span>
-          <strong>₹{{ order.total | number: '1.0-0' }}</strong>
+          <span class="value amount">₹{{ row.order.total | number: '1.0-0' }}</span>
         </div>
       </div>
 
       <div class="order-items">
-        @for (item of order.items; track item.productId) {
+        @for (item of row.items; track item.productId) {
           <div class="order-product" (click)="viewProductDetails(item.productId)">
             <img [src]="item.image" [alt]="item.title" loading="lazy" />
 
@@ -44,7 +59,7 @@
             </div>
 
             <div class="item-price">
-              <span class="final-price">₹{{ getDiscountPrice(item) | number: '1.0-0' }}</span>
+              <span class="final-price">₹{{ item.finalPrice | number: '1.0-0' }}</span>
 
               @if (item.discount && item.discount > 0) {
                 <span class="original-price">₹{{ item.price | number: '1.0-0' }}</span>
@@ -52,6 +67,12 @@
               }
             </div>
           </div>
+        }
+
+        @if (row.hiddenCount; as extra) {
+          <a class="more-items" [routerLink]="['/orders', row.order.orderId]">
+            +{{ extra }} more {{ extra === 1 ? 'item' : 'items' }}
+          </a>
         }
       </div>
     </article>

@@ -1,0 +1,123 @@
+@if (isLoading()) {
+  <app-loader />
+} @else if (notFound()) {
+  <div class="track-page">
+    <div class="empty-state">
+      <p class="empty-title">Order not found</p>
+      <p class="empty-sub">This order does not exist, or it is not yours.</p>
+      <a routerLink="/account" class="primary-btn">Back to My Orders</a>
+    </div>
+  </div>
+} @else if (order(); as order) {
+  <div class="track-page">
+    <a routerLink="/account" class="back-link">← Back to My Orders</a>
+
+    <header class="track-head">
+      <div>
+        <span class="label">Order ID</span>
+        <code>{{ order.orderId }}</code>
+      </div>
+
+      <span class="status-pill" [ngClass]="'status-' + order.status">
+        {{ order.status | titlecase }}
+      </span>
+    </header>
+
+    <!-- Progress -->
+    <section class="card">
+      <h3 class="card-title">Order status</h3>
+
+      @if (cancelled()) {
+        <div class="cancelled-banner">
+          <strong>This order was cancelled.</strong>
+          <span>Any reserved stock has been released and paid amounts refunded.</span>
+        </div>
+      } @else {
+        <ol class="steps">
+          @for (step of steps; track step.status; let i = $index) {
+            <li
+              class="step"
+              [class.done]="i <= currentStep()"
+              [class.current]="i === currentStep()"
+            >
+              <span class="dot"></span>
+
+              <div class="step-body">
+                <strong>{{ step.label }}</strong>
+                <p>{{ step.blurb }}</p>
+
+                @if (stepAt(step.status); as at) {
+                  <small>{{ at | date: 'd MMM y, h:mm a' }}</small>
+                }
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+
+    <!-- Activity -->
+    <section class="card">
+      <h3 class="card-title">Activity</h3>
+
+      @if (activity().length) {
+        <ul class="activity">
+          @for (entry of activity(); track $index) {
+            <li>
+              <span class="activity-dot" [ngClass]="'status-' + entry.status"></span>
+
+              <div>
+                <strong>{{ entry.note || (entry.status | titlecase) }}</strong>
+                <small>{{ entry.at | date: 'd MMM y, h:mm a' }}</small>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="muted">No activity recorded for this order yet.</p>
+      }
+    </section>
+
+    <!-- Items -->
+    <section class="card">
+      <h3 class="card-title">Items</h3>
+
+      @for (item of order.items; track item.productId) {
+        <div class="order-product" (click)="viewProduct(item.productId)">
+          <img [src]="item.image" [alt]="item.title" loading="lazy" />
+
+          <div class="item-info">
+            <h4>{{ item.title }}</h4>
+            <p class="qty">Qty: {{ item.quantity }}</p>
+          </div>
+
+          <div class="item-price">
+            <span class="final-price">₹{{ getDiscountPrice(item) | number: '1.0-0' }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="totals">
+        <div><span>Subtotal</span><span>₹{{ order.subTotal | number: '1.0-0' }}</span></div>
+        <div><span>GST (18%)</span><span>₹{{ order.gst | number: '1.0-0' }}</span></div>
+        <div>
+          <span>Shipping</span>
+          <span>{{ order.shippingMethod === 'express' ? '₹90' : 'Free' }}</span>
+        </div>
+        <div class="grand"><span>Total</span><span>₹{{ order.total | number: '1.0-0' }}</span></div>
+      </div>
+    </section>
+
+    <!-- Delivery address -->
+    <section class="card">
+      <h3 class="card-title">Delivery address</h3>
+
+      <p class="addr-name">{{ order.address.fullName }}</p>
+      <p class="addr-line">
+        {{ order.address.address }}<br />
+        {{ order.address.city }}, {{ order.address.state }} — {{ order.address.pinCode }}
+      </p>
+      <p class="addr-line">Phone: {{ order.address.phone }}</p>
+    </section>
+  </div>
+}

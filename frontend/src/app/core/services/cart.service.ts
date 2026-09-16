@@ -126,19 +126,6 @@ export class CartService {
     });
   }
 
-  addCartItemToCart(item: CartItem): void {
-    if (!this.session.uid) return;
-
-    const existing = this.cart().find((i) => i.id === item.id);
-
-    this.commit(
-      this.api.post<{ items: CartItem[] }>('/cart', { productId: item.id }),
-      existing
-        ? this.cart().map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i))
-        : [{ ...item, quantity: 1, createdAt: Date.now() }, ...this.cart()],
-    ).subscribe({ error: () => undefined });
-  }
-
   saveForLater(item: CartItem): Observable<{ items: CartItem[]; savedLater: CartItem[] }> {
     if (!this.session.uid) return of({ items: this.cart(), savedLater: this.savedLater() });
 

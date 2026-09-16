@@ -18,6 +18,13 @@ export interface OrderAddress {
   pinCode: string;
 }
 
+/** One step in the order's history, appended server-side on every status write. */
+export interface OrderActivity {
+  status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
+  note?: string;
+  at: string | number;
+}
+
 export interface Order {
   orderId?: string;
   userId: string;
@@ -26,8 +33,12 @@ export interface Order {
   address: OrderAddress;
   subTotal: number;
   gst: number;
+  shipping?: number;
   total: number;
   shippingMethod: string;
   status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
+  paymentStatus?: 'pending' | 'paid' | 'confirmed' | 'failed';
+  paymentMethod?: string;
+  activity?: OrderActivity[];
   createdAt: number | null;
 }

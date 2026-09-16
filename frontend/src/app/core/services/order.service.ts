@@ -32,6 +32,16 @@ export interface OrderEvent {
   visible: boolean;
 }
 
+/**
+ * Applies one live event to a list: replaces the order if it is still visible, drops it if
+ * it has become an abandoned checkout. Shared so the "abandoned orders disappear" rule has
+ * one owner rather than a copy in every screen that subscribes to the feed.
+ */
+export function mergeOrderEvent(list: Order[], { order, visible }: OrderEvent): Order[] {
+  const rest = list.filter((o) => o.orderId !== order.orderId);
+  return visible ? [order, ...rest] : rest;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private api = inject(ApiService);
@@ -51,8 +61,7 @@ export class OrderService {
       source.addEventListener('order', (event) => {
         try {
           subscriber.next(JSON.parse((event as MessageEvent).data));
-        } catch {
-        }
+        } catch {}
       });
 
       return () => source.close();

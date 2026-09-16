@@ -1,5 +1,5 @@
 import { razorpayConfigured } from '../config/env.js';
-import { abandonOrder } from '../services/orders.js';
+import { abandonOrder, recordActivity } from '../services/orders.js';
 import { razorpayPublicKey, verifyPaymentSignature } from '../services/razorpay.js';
 import { ApiError } from '../utils/api-error.js';
 import { loadOwnedOrder, publishOrder } from './order.controller.js';
@@ -31,10 +31,10 @@ export async function verifyPayment(req, res) {
 
   order.paymentStatus = 'paid';
   order.razorpayPaymentId = razorpayPaymentId;
+  recordActivity(order, order.status, 'Payment received');
   await order.save();
 
-  publishOrder(order);
-  res.json({ order: order.toJSON() });
+  res.json({ order: publishOrder(order) });
 }
 
 /** Called when the user dismisses the Razorpay modal or the payment fails outright. */
@@ -42,6 +42,5 @@ export async function abandonPayment(req, res) {
   const reason = req.body?.reason === 'cancelled' ? 'cancelled' : 'failed';
   const order = await abandonOrder(await loadOwnedOrder(req), { reason });
 
-  publishOrder(order);
-  res.json({ order: order.toJSON() });
+  res.json({ order: publishOrder(order) });
 }

@@ -11,6 +11,17 @@ export interface AddressUser {
   pinCode: string | number;
 }
 
+export type PaymentMethodPref = 'cod' | 'upi' | 'card' | 'emi' | 'netbanking';
+
+/**
+ * Preferences only. **No card data** — the API refuses to store it, since holding a card
+ * number would put the app in PCI scope. Razorpay owns the card flow.
+ */
+export interface PaymentPrefs {
+  defaultMethod: PaymentMethodPref;
+  upiIds: string[];
+}
+
 export interface User {
   uid?: string;
   firstName: string;
@@ -18,6 +29,10 @@ export interface User {
   email: string;
   phoneNumber: string[];
   role?: 'user' | 'admin';
+
+  /** Cloudinary `secure_url`, empty when no avatar has been uploaded. */
+  avatarUrl?: string;
+  paymentPrefs?: PaymentPrefs;
 
   /** Virtual on the API's user model: `${firstName} ${lastName}`. Read-only. */
   displayName?: string;

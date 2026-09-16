@@ -23,6 +23,25 @@ const addressSchema = new Schema(
 
 serializeJson(addressSchema);
 
+/**
+ * Payment preferences only — a default method and the customer's UPI ids.
+ *
+ * **No card data is stored here, ever.** Holding a card number or CVV would put this app
+ * in PCI DSS scope, and Razorpay already owns the card flow. If saved cards are wanted
+ * later, store a Razorpay token id and the last four digits — never the number itself.
+ */
+const paymentPrefsSchema = new Schema(
+  {
+    defaultMethod: {
+      type: String,
+      enum: ['cod', 'upi', 'card', 'emi', 'netbanking'],
+      default: 'cod',
+    },
+    upiIds: { type: [String], default: [] },
+  },
+  { _id: false },
+);
+
 const userSchema = new Schema(
   {
     firstName: { type: String, required: true, trim: true },
@@ -32,6 +51,13 @@ const userSchema = new Schema(
     phoneNumber: { type: [String], default: [] },
     role: { type: String, enum: ['user', 'admin'], default: 'user', index: true },
     addresses: { type: [addressSchema], default: [] },
+
+    // Cloudinary `secure_url`. The public id is kept so a replacement can delete the old.
+    avatarUrl: { type: String, default: '' },
+    avatarPublicId: { type: String, default: '' },
+
+    paymentPrefs: { type: paymentPrefsSchema, default: () => ({}) },
+
     resetTokenHash: { type: String, select: false },
     resetTokenExpiresAt: { type: Date, select: false },
   },

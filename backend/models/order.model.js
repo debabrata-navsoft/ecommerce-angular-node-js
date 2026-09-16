@@ -72,6 +72,25 @@ const orderSchema = new Schema(
     },
     razorpayOrderId: { type: String, default: '' },
     razorpayPaymentId: { type: String, default: '' },
+
+    /**
+     * Append-only activity trail powering the order tracking page. `status` above is the
+     * current state; this is how it got there. Written by `recordActivity` in
+     * services/orders.js so every writer produces the same shape.
+     */
+    activity: {
+      type: [
+        new Schema(
+          {
+            status: { type: String, required: true },
+            note: { type: String, default: '' },
+            at: { type: Date, default: Date.now },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
   },
   { timestamps: true },
 );

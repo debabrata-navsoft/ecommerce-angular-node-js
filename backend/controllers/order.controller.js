@@ -1,6 +1,10 @@
-import { razorpayConfigured } from '../config/env.js';
 import { Order } from '../models/order.model.js';
-import { abandonOrder, cancelOrder, createOrderFromCart } from '../services/orders.js';
+import {
+  abandonOrder,
+  cancelOrder,
+  createOrderFromCart,
+  setOrderStatus,
+} from '../services/orders.js';
 import { createRazorpayOrder, razorpayPublicKey } from '../services/razorpay.js';
 import { ApiError } from '../utils/api-error.js';
 import { paginate } from '../utils/paginate.js';
@@ -8,10 +12,11 @@ import { paginate } from '../utils/paginate.js';
 const streamClients = new Set();
 
 export function publishOrder(order) {
-  if (streamClients.size === 0) return;
+  const json = order.toJSON();
+  if (streamClients.size === 0) return json;
 
   const payload = JSON.stringify({
-    order: order.toJSON(),
+    order: json,
     visible: !isAbandoned(order),
   });
 
@@ -20,9 +25,10 @@ export function publishOrder(order) {
 
     try {
       client.res.write(`event: order\ndata: ${payload}\n\n`);
-    } catch {
-    }
+    } catch {}
   }
+
+  return json;
 }
 
 export async function streamOrders(req, res) {
@@ -41,8 +47,7 @@ export async function streamOrders(req, res) {
   const heartbeat = setInterval(() => {
     try {
       res.write(': ping\n\n');
-    } catch {
-    }
+    } catch {}
   }, 25_000);
 
   req.on('close', () => {
@@ -66,17 +71,12 @@ export async function loadOwnedOrder(req) {
 export async function placeOrder(req, res) {
   const { address, shippingMethod = 'free', paymentMethod } = req.body;
 
-  if (paymentMethod !== 'cod' && !razorpayConfigured) {
-    throw ApiError.unavailable(
-      'Online payment is unavailable on this server. Please choose Cash on Delivery.',
-    );
-  }
-
+  // createOrderFromCart refuses a non-cod order when Razorpay is unconfigured, before it
+  // reserves any stock.
   const order = await createOrderFromCart(req.user, { address, shippingMethod, paymentMethod });
 
   if (paymentMethod === 'cod') {
-    publishOrder(order);
-    return res.status(201).json({ order: order.toJSON(), razorpay: null });
+    return res.status(201).json({ order: publishOrder(order), razorpay: null });
   }
 
   try {
@@ -89,8 +89,10 @@ export async function placeOrder(req, res) {
     order.razorpayOrderId = rp.id;
     await order.save();
 
+    // Published here too — this branch used to return without it, so an admin watching the
+    // live feed never saw an online-payment order until it was verified or abandoned.
     res.status(201).json({
-      order: order.toJSON(),
+      order: publishOrder(order),
       razorpay: { keyId: razorpayPublicKey(), ...rp, orderId: rp.id },
     });
   } catch (err) {
@@ -138,21 +140,15 @@ export async function updateOrderStatus(req, res) {
 
   if (status === 'cancelled') return cancelMyOrder(req, res);
 
-  const order = await Order.findOneAndUpdate(
-    { orderId: req.params.orderId },
-    { status },
-    { new: true, runValidators: true },
-  );
+  // Through the service so the activity trail cannot be skipped; the raw `$push` this
+  // replaced was a third encoding of an activity entry.
+  const order = await setOrderStatus(await loadOwnedOrder(req), status);
 
-  if (!order) throw ApiError.notFound('Order not found');
-
-  publishOrder(order);
-  res.json({ order: order.toJSON() });
+  res.json({ order: publishOrder(order) });
 }
 
 export async function cancelMyOrder(req, res) {
   const order = await cancelOrder(await loadOwnedOrder(req));
 
-  publishOrder(order);
-  res.json({ order: order.toJSON() });
+  res.json({ order: publishOrder(order) });
 }

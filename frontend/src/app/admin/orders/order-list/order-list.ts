@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIcon } from '@angular/material/icon';
 
-import { OrderService } from '../../../core/services/order.service';
+import { mergeOrderEvent, OrderService } from '../../../core/services/order.service';
 import { LoaderService } from '../../../core/services/loader.service';
 import { Order } from '../../../shared/models/order.model';
 import { Loader } from '../../../shared/components/loader/loader';
@@ -47,7 +47,7 @@ export class OrderList implements OnInit {
     });
 
     const streamSub = this.orderService.streamOrders().subscribe({
-      next: ({ order, visible }) => this.applyLiveOrder(order, visible),
+      next: (event) => this.orders.update((list) => mergeOrderEvent(list, event)),
       error: (err) => console.log(err),
     });
 
@@ -64,26 +64,18 @@ export class OrderList implements OnInit {
     // });
   }
 
-  private applyLiveOrder(order: Order, visible: boolean) {
-    const rest = this.orders().filter((o) => o.orderId !== order.orderId);
-
-    this.orders.set(visible ? [order, ...rest] : rest);
-  }
-
   changeStatus(order: Order, event: Event) {
     const status = (event.target as HTMLSelectElement).value as Order['status'];
 
-    const statusSub = this.orderService
-      .updateOrderStatus(order.orderId!, status)
-      .subscribe({
-        next: () => {
-          const updated = this.orders().map((o) =>
-            o.orderId === order.orderId ? { ...o, status } : o,
-          );
-          this.orders.set(updated);
-        },
-        error: (err) => console.log(err),
-      });
+    const statusSub = this.orderService.updateOrderStatus(order.orderId!, status).subscribe({
+      next: () => {
+        const updated = this.orders().map((o) =>
+          o.orderId === order.orderId ? { ...o, status } : o,
+        );
+        this.orders.set(updated);
+      },
+      error: (err) => console.log(err),
+    });
 
     this.destroyRef.onDestroy(() => {
       statusSub.unsubscribe();
