@@ -2,14 +2,18 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 import { AdminAuthService } from '../../../core/services/auth-admin.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ApiFailure } from '../../../core/services/api.service';
+import { applyServerErrors, clearServerErrors } from '../../../core/form-errors';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [ReactiveFormsModule, MatProgressSpinnerModule],
+  imports: [ReactiveFormsModule, MatProgressSpinnerModule, MatIconModule],
   templateUrl: './admin-login-page.html',
   styleUrl: './admin-login-page.css',
 })
@@ -21,6 +25,10 @@ export class AdminLoginPage implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   isLoading = signal(false);
+  showPassword = signal(false);
+
+  /** Failures belonging to no single field — a non-admin account, or the API being down. */
+  serverError = signal('');
 
   loginForm = new FormGroup({
     email: new FormControl('', {
@@ -32,6 +40,18 @@ export class AdminLoginPage implements OnInit {
       validators: [Validators.required],
     }),
   });
+
+  get email() {
+    return this.loginForm.controls.email;
+  }
+
+  get password() {
+    return this.loginForm.controls.password;
+  }
+
+  togglePassword() {
+    this.showPassword.update((v) => !v);
+  }
 
   ngOnInit() {
     const sub = this.adminAuthService.isAdmin$.subscribe((isAdmin) => {
@@ -48,7 +68,15 @@ export class AdminLoginPage implements OnInit {
   }
 
   onSubmit() {
-    if (this.loginForm.invalid) return;
+    this.serverError.set('');
+    clearServerErrors(this.loginForm);
+
+    // Previously this returned silently, so a malformed email looked like a dead button.
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      this.snackBar.error('Please enter a valid email and password');
+      return;
+    }
 
     const { email, password } = this.loginForm.getRawValue();
 
@@ -61,23 +89,14 @@ export class AdminLoginPage implements OnInit {
 
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
         this.router.navigateByUrl(returnUrl);
-        // this.router.navigate(['/admin']);
       },
 
-      error: (error: any) => {
-        let message = 'Login failed';
-
-        if (error.message === 'Unauthorized') {
-          message = 'Only admin can login';
-        }
-
-        if (error.message === 'Admin not found') {
-          message = 'Admin not found';
-        }
-
-        this.snackBar.error(message);
-
-        console.error(error);
+      error: (err: ApiFailure) => {
+        // The API already says exactly what went wrong ("This email is not registered",
+        // "Incorrect password") and tags the offending field in `details`. This used to
+        // discard all of it and show a blanket "Login failed".
+        this.serverError.set(applyServerErrors(this.loginForm, err));
+        this.snackBar.error(err.message || 'Login failed. Please try again.');
         this.isLoading.set(false);
       },
     });

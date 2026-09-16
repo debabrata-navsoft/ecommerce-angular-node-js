@@ -12,18 +12,68 @@
           autocomplete="email"
           placeholder="Email"
           formControlName="email"
+          [class.invalid]="(email.touched && email.invalid) || email.errors?.['server']"
         />
 
+        <div class="error">
+          @if (email.errors?.['required'] && email.touched) {
+            <p class="error-line">Email is required.</p>
+          }
+
+          @if (email.errors?.['email'] && email.touched) {
+            <p class="error-line">Enter a valid email address.</p>
+          }
+
+          <!-- e.g. "This email is not registered. Please sign up first." -->
+          @if (email.errors?.['server']) {
+            <p class="error-line">{{ email.errors!['server'] }}</p>
+          }
+        </div>
+
         <label for="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="Password"
-          formControlName="password"
-        />
+        <div class="password-field">
+          <input
+            id="password"
+            name="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            autocomplete="current-password"
+            placeholder="Password"
+            formControlName="password"
+            [class.invalid]="(password.touched && password.invalid) || password.errors?.['server']"
+          />
+
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            [attr.aria-pressed]="showPassword()"
+          >
+            <mat-icon class="material-icons-outlined">
+              {{ showPassword() ? 'visibility_off' : 'visibility' }}
+            </mat-icon>
+          </button>
+        </div>
+
+        <div class="error">
+          @if (password.errors?.['required'] && password.touched) {
+            <p class="error-line">Password is required.</p>
+          }
+
+          <!-- e.g. "Incorrect password. Please try again." -->
+          @if (password.errors?.['server']) {
+            <p class="error-line">{{ password.errors!['server'] }}</p>
+          }
+        </div>
       </div>
+
+      <!-- Failures belonging to no single field: a non-admin account, or the API being down. -->
+      @if (serverError()) {
+        <div class="server-error">
+          <mat-icon class="material-icons-outlined">error_outline</mat-icon>
+          <p class="error-line">{{ serverError() }}</p>
+        </div>
+      }
 
       <button type="submit" class="admin-login-btn">
         @if (isLoading()) {
@@ -32,16 +82,6 @@
           Login
         }
       </button>
-
-      <!-- <button [disabled]="loginForm.invalid || isLoading">
-        {{ isLoading ? 'Logging in...' : 'Login' }}
-      </button> -->
     </form>
-
-    <!-- @if (errorMsg) {
-      <p class="error">
-        {{ errorMsg }}
-      </p>
-    } -->
   </div>
 </div>

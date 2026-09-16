@@ -1,83 +1,179 @@
+/* Same palette as the customer login (pages/auth/login-page) so the two match. */
 .login-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #0f172a;
+  padding: 1.5rem;
+  background: #fff;
 }
 
 .login-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 1.5rem;
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  width: 300px;
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  background: #ffd8a8;
+  border-radius: 12px;
 }
 
-.login-box label {
-  font-size: 16px;
+.login-box h2 {
+  margin: 0 0 1.75rem;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  color: #000;
+}
+
+.input-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-box label {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
 }
 
 .login-box input {
   width: 100%;
-  padding: 10px 8px;
-  margin: 10px 0;
-  box-sizing: border-box;
-  margin-bottom: 1rem;
-
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  outline: none; /* 🔥 important */
-  transition: 0.2s ease;
-}
-
-/* Focus style */
-.login-box input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-}
-
-/* .login-box input {
-  width: 100%;
-  padding: 10px 8px;
-  margin: 10px 0;
-  box-sizing: border-box;
-  margin-bottom: 1rem;
-}
-
-.login-box input:focus {
-  border-color: #2563eb;
-} */
-
-.login-box button {
-  width: 100%;
-  margin-top: 10px;
   padding: 12px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: 0.3s;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 16px;
+  color: #000;
+  background: #ffe8cc;
+  border: 1px solid #fd7e14;
+  border-radius: 8px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.login-box button:hover {
-  background: #1d4ed8;
+.login-box input::placeholder {
+  color: #ff922b;
+  opacity: 1;
+}
+
+.login-box input:focus {
+  border-color: #e67700;
+  box-shadow: 0 0 0 3px rgba(230, 119, 0, 0.25);
+}
+
+.login-box input.invalid {
+  background: #fff6f5;
+  border-color: #e62525;
+}
+
+.login-box input.invalid:focus {
+  border-color: #e62525;
+  box-shadow: 0 0 0 3px rgba(230, 37, 37, 0.2);
+}
+
+/* Password field with the reveal toggle sitting inside the input. */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  padding-right: 2.75rem;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 0.35rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #e67700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toggle-password:hover {
+  background: rgba(230, 119, 0, 0.14);
+}
+
+.toggle-password mat-icon {
+  font-size: 1.15rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  line-height: 1.15rem;
 }
 
 .error {
-  color: red;
-  text-align: center;
-  font-size: 14px;
+  display: flex;
+  flex-direction: column;
 }
 
+.error-line {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #ff0000;
+}
+
+.error:not(:empty) {
+  margin-bottom: 0.5rem;
+}
+
+/* Failures with no single field: a non-admin account, or the API being unreachable. */
+.server-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.7rem 0.85rem;
+  background: #fff6f5;
+  border: 1px solid #ffc9c9;
+  border-radius: 8px;
+}
+
+.server-error mat-icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  line-height: 1.1rem;
+  color: #e62525;
+}
+
+.server-error .error-line {
+  margin: 0;
+}
+
+/* Scoped to the submit button — an unscoped `button` rule also hit the eye toggle. */
 .admin-login-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  width: 100%;
+  margin-top: 25px;
+  padding: 14px;
+  font: inherit;
+  font-size: 18px;
+  color: #000;
+  background: #e67700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-login-btn:hover {
+  background: #fd7e14;
+}
+
+.admin-login-btn[disabled] {
+  background: #999;
+  cursor: not-allowed;
 }
