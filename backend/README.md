@@ -1,26 +1,26 @@
 # ecommerce-api
 
-Node.js + Express 5 + MongoDB (Mongoose) backend for the Angular app in the parent
-directory. Plain ESM JavaScript (`"type": "module"`) — no build step.
+Node.js + Express 5 + MongoDB (Mongoose) backend for the Angular app in the sibling
+`frontend/` directory. Plain ESM JavaScript (`"type": "module"`) — no build step.
 
 MongoDB collections for data, JWT + bcrypt for auth, with roles on the user document.
 
 ## Layout
 
-`src/server.js` is the only entry point: it builds the Express app (exported as
+`server.js` is the only entry point: it builds the Express app (exported as
 `createApp()` so it can be mounted in a test without opening a port) and starts it.
+Source sits directly in the package root — there is no `src/` wrapper.
 
 ```
-src/
-  server.js          entry point — app wiring + listen + graceful shutdown
-  config/            env (loads .env from the package root), db connection
-  models/            Mongoose schemas
-  controllers/       plain async request handlers
-  routes/            express-validator chains + wiring
-  services/          business logic (orders, inventory, pricing, line lists, razorpay)
-  middleware/        auth, validation, error handling
-  utils/             ApiError, JWT, shared serialization + paging
-  seed/              seed script and sample catalogue
+server.js            entry point — app wiring + listen + graceful shutdown
+config/              env (loads .env from the package root), db connection
+models/              Mongoose schemas
+controllers/         plain async request handlers
+routes/              express-validator chains + wiring
+services/            business logic (orders, inventory, pricing, line lists, razorpay)
+middleware/          auth, validation, error handling
+utils/               ApiError, JWT, shared serialization + paging
+seed/                seed script and sample catalogue
 ```
 
 Handlers are plain `async function`s with **no** try/catch wrapper — Express 5 forwards a
@@ -30,7 +30,7 @@ from inside an async handler is enough.
 ## Setup
 
 ```bash
-cd server
+cd backend
 npm install
 cp .env.example .env        # then fill in MONGODB_URI and JWT_SECRET
 npm run seed                # creates the admin user + 36 sample products, builds indexes

@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 
 // `import 'dotenv/config'` resolves .env against process.cwd(), which breaks the moment a
-// script is run from its own directory (`cd src/seed && node seed.js`). Anchor it to the
+// script is run from its own directory (`cd seed && node seed.js`). Anchor it to the
 // package root instead, so every entry point loads the same file from anywhere.
-const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const envPath = path.join(packageRoot, '.env');
 
 dotenv.config({ path: envPath });

@@ -4,15 +4,15 @@
   "private": true,
   "type": "module",
   "description": "Node.js + Express + MongoDB (Mongoose) backend for the ecommerce-ssr Angular app",
-  "main": "src/server.js",
+  "main": "server.js",
   "engines": {
     "node": ">=20.11"
   },
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "seed": "node src/seed/seed.js",
-    "seed:reset": "node src/seed/seed.js --reset"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seed/seed.js",
+    "seed:reset": "node seed/seed.js --reset"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

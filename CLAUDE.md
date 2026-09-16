@@ -43,8 +43,29 @@ backend/     Express 5 + Mongoose API  (plain ESM JavaScript, no build step)
 ```
 
 `backend/README.md` has the full endpoint list. Routes are mounted in
-`backend/src/routes/index.js` under `/api`: `auth`, `products`, `users`, `cart`,
+`backend/routes/index.js` under `/api`: `auth`, `products`, `users`, `cart`,
 `wishlist`, `saved-later`, `orders`, `payments`, plus `GET /api/health`.
+
+### `backend/` folder roles
+
+Source sits **directly in the package root — there is no `src/` wrapper.** `server.js` is
+the only entry point.
+
+```
+server.js      app wiring + listen + graceful shutdown; exports createApp()
+config/        env.js (loads .env from the package root), db.js (connection, withTransaction)
+models/        Mongoose schemas
+controllers/   plain async request handlers, kept thin
+routes/        express-validator chains + wiring
+services/      business logic (orders, inventory, pricing, line-items, razorpay, mailer)
+middleware/    auth, validate, error
+utils/         ApiError, JWT, shared serialization + paging
+seed/          seed script and sample catalogue
+```
+
+`config/env.js` anchors `.env` to the package root by walking **one** level up from its own
+directory (`import.meta.url` + `'..'`). That hop is depth-sensitive — if `config/` is ever
+moved, the `'..'` must change with it or the server boots without `JWT_SECRET` and exits.
 
 ### `frontend/src/app/` folder roles
 
@@ -135,7 +156,7 @@ the rules changed:
   data-layer limits.
 
 The SSR server calls the API server-to-server, forwarding the cookie but sending no
-`Origin` header, which `backend/src/server.js` allows explicitly (`if (!origin || ...)`).
+`Origin` header, which `backend/server.js` allows explicitly (`if (!origin || ...)`).
 Keep that branch when touching CORS.
 
 ### Routing and layouts
@@ -217,7 +238,7 @@ Cart, wishlist and saved-later store **only a product reference** and resolve it
 `populate` on read, so a price or stock edit shows up in every list at once. Orders are
 the deliberate exception: they embed a frozen snapshot, because an order's prices must not
 follow later product edits. All three lists share one schema factory
-(`backend/src/models/line-item.model.js`).
+(`backend/models/line-item.model.js`).
 
 Orders are written **once**. Firestore needed the `orders/{id}` mirror of
 `users/{uid}/orders/{id}` so admins could query them all; one indexed collection now
@@ -251,7 +272,7 @@ Dismissing the modal or a failed payment calls `POST /api/payments/:orderId/aban
 which releases the stock the order reserved. `'cod'` skips Razorpay entirely and is
 written `paymentStatus: 'confirmed'`.
 
-Totals live in `backend/src/services/pricing.js` and are mirrored for display in
+Totals live in `backend/services/pricing.js` and are mirrored for display in
 `checkout-page.ts`: `gst = subTotal * 0.18`, `express` shipping = 90, `free` = 0. Change
 both or they drift.
 
@@ -267,16 +288,16 @@ both or they drift.
 - Templates use the built-in control flow (`@if`, `@for`), not `*ngIf`/`*ngFor`.
 - Subscriptions are cleaned up with `inject(DestroyRef).onDestroy(() => sub.unsubscribe())` rather than `ngOnDestroy`.
 - TypeScript is `strict` with `noPropertyAccessFromIndexSignature`, so index-signature access is bracketed: `err.error?.['message']`. `strictTemplates` is on.
-- Shared helpers live under `shared/`: `shared/pipes/` (`truncate`, `time-ago`, `category-label`), `shared/directives/highlight.ts`, `shared/utils/rating.util.ts`. Category taxonomy is a static list in `shared/data/category.data.ts` — subcategory slugs there must match the `subCategory` values stored on product documents, since filtering compares them lowercased. `backend/src/seed/products.data.js` uses those same slugs.
-- Backend: `backend/src/server.js` is the single entry point — it builds the app (exported as
+- Shared helpers live under `shared/`: `shared/pipes/` (`truncate`, `time-ago`, `category-label`), `shared/directives/highlight.ts`, `shared/utils/rating.util.ts`. Category taxonomy is a static list in `shared/data/category.data.ts` — subcategory slugs there must match the `subCategory` values stored on product documents, since filtering compares them lowercased. `backend/seed/products.data.js` uses those same slugs.
+- Backend: `backend/server.js` is the single entry point — it builds the app (exported as
   `createApp()` so it can be mounted in a test without opening a port) and starts it.
-  Controllers stay thin and delegate to `backend/src/services/*`. Route files own validation via
+  Controllers stay thin and delegate to `backend/services/*`. Route files own validation via
   `express-validator` chains plus the shared `validate` middleware. Throw `ApiError.*` rather
   than crafting responses; the error handler renders the envelope.
 - **Handlers are plain `async function`s with no try/catch wrapper.** Express 5 forwards a
   rejected promise to the error handler itself, so there is no `asyncHandler`. Do not add one.
-- Shared serialization lives in `backend/src/utils/mongoose-json.js` (`serializeJson` for schemas,
-  `serializeLean` for aggregation results) and paging in `backend/src/utils/paginate.js`. Reuse them
+- Shared serialization lives in `backend/utils/mongoose-json.js` (`serializeJson` for schemas,
+  `serializeLean` for aggregation results) and paging in `backend/utils/paginate.js`. Reuse them
   instead of hand-writing a `toJSON` transform or re-deriving page/limit.
 
 ## Gotchas
@@ -294,7 +315,7 @@ both or they drift.
   and `Vary: Cookie` on it for that reason — a shared cache would serve one visitor's
   account to another. Static assets under `/browser` keep their 1-year cache.
 - `backend/.env` is gitignored and is the file the server loads; `backend/.env.example` is the committed template. **Never put real credentials in `.env.example`.**
-- `backend/src/config/env.js` resolves `.env` from the package root via `import.meta.url`, not `process.cwd()`, so scripts work from any directory. Do not switch it back to `import 'dotenv/config'`.
+- `backend/config/env.js` resolves `.env` from the package root via `import.meta.url`, not `process.cwd()`, so scripts work from any directory. Do not switch it back to `import 'dotenv/config'`.
 - `JWT_SECRET` is required — the API refuses to boot without it. A short or guessable value lets anyone mint a `role=admin` token.
 - `RAZORPAY_KEY_SECRET` is **not** the same string as `RAZORPAY_KEY_ID`. Using the key id as the secret makes every signature verification fail. Without both, `/api/payments/*` returns 503 and only `cod` orders work.
 - `SEED_ADMIN_EMAIL` must be a real email address; every login route validates the field as one, so a bare username creates an account that can never sign in. The seed fails fast on this.

@@ -10,15 +10,9 @@ import { authenticate } from './middleware/auth.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import routes from './routes/index.js';
 
-/**
- * Builds the Express app without starting it. Kept exported and separate from `main()` so
- * the app can be mounted in a test (supertest) or another host without opening a port or
- * connecting to Mongo.
- */
 export function createApp() {
   const app = express();
 
-  // Behind a proxy (Cloud Run, nginx) so secure cookies and req.ip resolve correctly.
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
 
@@ -26,9 +20,6 @@ export function createApp() {
 
   app.use(
     cors({
-      // A credentialed request cannot use a wildcard origin, so the allow-list is checked
-      // explicitly. Requests without an Origin header (the Angular SSR server calling the
-      // API server-to-server, curl, health checks) are allowed through.
       origin(origin, callback) {
         if (!origin || env.corsOrigins.includes(origin) || env.corsOrigins.includes('*')) {
           return callback(null, true);
@@ -44,7 +35,6 @@ export function createApp() {
   app.use(cookieParser());
   app.use(morgan(isProduction ? 'combined' : 'dev'));
 
-  // Resolves req.user for every route; individual routes decide whether it is required.
   app.use(authenticate);
 
   app.use('/api', routes);
@@ -66,7 +56,6 @@ async function main() {
     }
   });
 
-  // Finish in-flight requests before closing the pool, so a redeploy does not 500 anyone.
   const shutdown = async (signal) => {
     console.log(`\n[api] ${signal} received, shutting down`);
     server.close(async () => {
